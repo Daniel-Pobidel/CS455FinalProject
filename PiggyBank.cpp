@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <cstdio>
 #include <iomanip>
@@ -52,13 +53,96 @@ void createOutputFile(){
     loadOutputFileTemplate((filename).c_str());
 }
 
-
 // Radek
 void usage(){
     cout << "Usage: PiggyVBank [-d <argument> -nh] (Only one flag is accepted)" << endl;
     cout << "-d <argument> Enter debit card number of the text file" << endl;
     cout << "-n            User is directed to create a new file" << endl;
     cout << "-h            Display Help" << endl;
+}
+/* TODO */
+void showAccount(){cout << "showAccoutnt" << endl;}
+/* TODO */
+void withdraw(){}
+/* TODO */
+void deposit(){}
+/* TODO */
+void changeSettings(){}
+
+// Radek
+void process_debit(){
+    /* TODO Show basic info */
+    system("echo Type 's' to show account information");
+    system("echo Type 'w' to withdraw");
+    system("echo Type 'd' to deposit");
+    system("echo Type 'a' to change account\\'s information");
+    system("echo Type 'q' to quit");
+    char input;
+    cin >> input;
+    if (input == 's' || input == 'S')
+        showAccount();
+    else if (input == 'w' || input == 'W')
+        withdraw();
+    else if (input == 'd' || input == 'D')
+        deposit();
+    else if (input == 'a' || input == 'A')
+        changeSettings();
+    else if (input == 'q' || input == 'Q'){
+        /* TODO Gracefully exit the program */
+        cout << "Logging off" << endl;
+        exit(0);
+    }else cout << "Command not found!" << endl;;
+
+}
+
+// Radek
+void start_debit(char * debit){
+    if (true)/* TODO create a method to check if card exists */{
+        cout << "Debit Card Found" << endl;
+        if (true)/* TODO checks if debit file is legit (seperate method maybe) */{
+            if (true)/* TODO check is account is not locked */{
+                cout << "Debit Card Read Successfully" << endl;
+                int tries = 3;
+                int pinEnter;
+                bool success = false;
+                while (tries > 0 && !success ){
+                    cout << "Enter Debit Card's 4 digitPin [0-9 values only]:" << endl;
+                    system("echo off");
+                    cin >> pinEnter;
+                    while(cin.fail() || to_string(pinEnter).length() != 4)
+                    {
+                        cout << "Incorrect Input. Please Enter Debit Card's 4 digitPin [0-9 values only]:" << endl;
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cin >> pinEnter;
+                    }
+                    if (pinEnter == 1234)/* TODO check if pin matches */{
+                        cout << "Pin sucessfully Entered!" << endl;
+                        success = true;
+                        process_debit();
+                    }else{
+                        tries--;
+                        cout << "Pin does not match! Please tried again. " << tries << " remaining before locked down." << endl;
+                        if (!tries){
+                            /* TODO add timestamp to file to lock the acccount. (Like 20 secs or so) */
+                            fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked for x time!\n");
+                            exit(1);                            
+                        }
+                    }
+                }
+            }else{
+                fprintf (stderr, "Your account is locked. You cannot open it until x time.\n");
+                exit(1);
+            }
+        }else{
+            fprintf (stderr, "The Debit Card looks broken. Cannot be used.\n");
+            exit(1);
+        }
+    }else{
+        fprintf (stderr, "Card not found! Here is the help menu:\n");
+        usage();
+        exit(1);
+    }
 }
 
 // Radek
@@ -109,6 +193,7 @@ void start(int argc, char **argv){
             exit(1);
         }else if (dflag){
             // Do Debit Card Stuff here
+            start_debit(dvalue);
         }else if (nflag){
             // Create new account here $$$$ ANI 
             fprintf (stdout, "Creating an account now.\n");
@@ -125,10 +210,8 @@ void start(int argc, char **argv){
         //     printf ("Non-option argument %s\n", argv[index]);
 }
 
-
-
 int main(int argc, char **argv){
-    
+    // process_debit();
     start(argc, argv);
     // createOutputFile();
 
