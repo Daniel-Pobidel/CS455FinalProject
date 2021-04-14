@@ -9,6 +9,7 @@
 #include <string.h>
 #include <string>
 #include <unistd.h>
+#include <sstream>
 using namespace std;
 
 //temp variables hard coded for testing, these will be populated by user input
@@ -52,6 +53,96 @@ void createOutputFile(){
 
     loadOutputFileTemplate((filename).c_str());
 }
+
+// Ani
+// function is used to check if dob is valid
+bool isValidDOB(int month, int day, int year){
+    if(year > 9999 || year < 1903)
+        return false;
+    if(day < 1 || day > 31)
+        return false;
+    if(month < 1 || month > 12)
+        return false;
+
+    if(month == 2){
+        if( ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0) ){
+            if(day <= 29){
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            if(day <= 28){
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }
+
+    if(month == 4 || month == 6 || month == 9 || month == 11){
+        if(day <= 30){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+// Ani
+// Function to create new account
+// using local varaibles for now, only validaty check is to see if DOB.pin is in correct format. 
+void newAcc(){
+    string fname;
+    string lname;
+    string addy;
+    int month, day, year;
+    int pin;
+    int valid = 1;
+    cout << "Please enter in your first name: ";
+    cin >> fname;
+    cout << "Please enter in your last name: ";
+    cin >> lname;
+    cout << "Please enter your birthday (mm-dd-yyyy). Enter one after another seperated by /: ";
+    cin >> month;
+    if(cin.get() == '/'){
+        cin >> day;
+        if(cin.get() == '/'){
+            cin >> year;
+        }else{
+            cout << "Please use the / to sperate the day and year. ";
+        }
+    }else{
+        cout << "Please use the / to seperate the month and day.";
+    }
+        
+
+    if(isValidDOB(month, day, year) == false){
+        cout << "Date of birth is invalid" << endl;
+        valid = 0;
+    }
+    if(valid == 1){
+        cout << "Please enter in your address:";
+        cin.ignore();        
+        getline(cin, addy);
+    }
+    if(valid == 1){
+        cout << "Enter your pin:" << endl;
+        cin >> pin;
+    }
+    if(pin < 1 || pin > 9999){
+        cout << "Pin is invalid" << endl;
+        valid = 0;
+    }
+    if(valid == 1){
+        cout << "your info is " << fname << " " << lname << " from " << addy << " born on " << month << "/" << day  << "/" << year << endl;        
+    }
+    
+}
+
 
 // Radek
 void usage(){
@@ -194,9 +285,9 @@ void start(int argc, char **argv){
         }else if (dflag){
             // Do Debit Card Stuff here
             start_debit(dvalue);
-        }else if (nflag){
-            // Create new account here $$$$ ANI 
+        }else if (nflag){ 
             fprintf (stdout, "Creating an account now.\n");
+            newAcc();
         }else if (hflag){
             usage();
             // Display help menu
