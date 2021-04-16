@@ -8,6 +8,7 @@
 #include <ctime> 
 #include <fstream>
 #include <string.h>
+#include <vector>
 #include <string>
 #include <unistd.h>
 #include <sstream>
@@ -19,13 +20,22 @@ int dob[3]= {07,10,1999};
 int pin = 0000;
 double balance = 0.00;
 long verificationCode=100000000000000000;
-int transactions[512]={};
+vector <double> transactions;
 string tranDates[512]={""};
+
+int calcBalance(){
+    balance = 0;
+    for(int tran :transactions){
+        balance += tran;
+    }
+    return balance;
+}
 
 //Dan
 //Loads data from given input file into global variables
 bool loadInputFile(const char *filename){
     FILE *f;
+    bool readTran = false;
     int currLine = 1;
     int size = 1024, pos;
     int c;
@@ -37,6 +47,7 @@ bool loadInputFile(const char *filename){
 
     if(f) {
       string temp;
+      double tempDouble;
       do { // read all lines in file
         pos = 0;
         do{ // read one line
@@ -78,8 +89,22 @@ bool loadInputFile(const char *filename){
 
         }
 
-        if(currLine > 8){
+        if(currLine > 8 && !readTran){
             //read transactions
+            getline(ss, temp, '$'); //sign (+/-)
+
+            if(temp.compare("+") == 0){
+                getline(ss, temp, ' '); //amount (dollars)
+                sscanf(temp.c_str(), "%lf", &tempDouble);
+                transactions.push_back(tempDouble);
+            }
+            else if(temp.compare("-") == 0){
+                getline(ss, temp, ' '); //amount (dollars)
+                sscanf(temp.c_str(), "%lf", &tempDouble);
+                tempDouble *= -1; 
+                transactions.push_back(tempDouble);
+            }   
+            //readTran = true;
 
 
             //read balance
@@ -97,20 +122,20 @@ bool loadInputFile(const char *filename){
       } while(c != EOF); 
       fclose(f); 
 
-    
+        //below prints input from file
         // cout <<fname <<endl;
         // cout<<lname <<endl;
         // cout << dob[0] << "/" << dob[1] << "/" << dob[2] << endl;
         // cout << address << endl;
         // cout << account << endl;
         //cout << fixed << setprecision(2) << balance << endl;
-        // //cout << transactions << endl;
+        //for(int i =0; i<transactions.size(); i++)
+         //cout << fixed << setprecision(2) << transactions.at(i) << endl;
       cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
       return true;    
     }
     else{
         throw "Failed to open, specified file not found.";
-
     }
 
 
