@@ -23,7 +23,7 @@ string tranDates[512]={""};
 
 //Dan
 //Loads data from given input file into global variables
-void loadInputFile(const char *filename){
+bool loadInputFile(const char *filename){
     FILE *f;
     int currLine = 0;
     int size = 1024, pos;
@@ -92,8 +92,8 @@ void loadInputFile(const char *filename){
         // cout << address << endl;
         // cout << account << endl;
         // //cout << transactions << endl;
-     cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
-          
+      cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
+      return true;    
     }
     else{
         throw "Failed to open, specified file not found.";
@@ -274,8 +274,7 @@ void process_debit(){
 
 // Radek
 void start_debit(char * debit){
-    if (true)/* TODO create a method to check if card exists */{
-        cout << "Debit Card Found" << endl;
+    if (loadInputFile(debit)){
         if (true)/* TODO checks if debit file is legit (seperate method maybe) */{
             if (true)/* TODO check is account is not locked */{
                 cout << "Debit Card Read Successfully" << endl;
@@ -389,8 +388,8 @@ void start(int argc, char **argv){
 
 int main(int argc, char **argv){
     // process_debit();
-    //start(argc, argv);
-    loadInputFile("Bezos_PiggyCard_4.16.2021.15.53.0.txt");
+    start(argc, argv);
+    //loadInputFile("Bezos_PiggyCard_4.16.2021.15.53.0.txt");
 
     return 0;
 }
