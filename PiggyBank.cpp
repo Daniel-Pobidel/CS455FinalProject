@@ -52,6 +52,9 @@ void createOutputFile(){
     fclose(f);
 
     loadOutputFileTemplate((filename).c_str());
+
+    cout << "Sucessfully created new account!" << endl;
+    cout << "Your online piggy bank card is: " << filename << endl;
 }
 
 // Ani
@@ -96,22 +99,17 @@ bool isValidDOB(int month, int day, int year){
 // Function to create new account
 // using local varaibles for now, only validaty check is to see if DOB.pin is in correct format. 
 void newAcc(){
-    string fname;
-    string lname;
-    string addy;
-    int month, day, year;
-    int pin;
     int valid = 1;
     cout << "Please enter in your first name: ";
     cin >> fname;
     cout << "Please enter in your last name: ";
     cin >> lname;
     cout << "Please enter your birthday (mm-dd-yyyy). Enter one after another seperated by /: ";
-    cin >> month;
+    cin >> dob[0];
     if(cin.get() == '/'){
-        cin >> day;
+        cin >> dob[1];
         if(cin.get() == '/'){
-            cin >> year;
+            cin >> dob[2];
         }else{
             cout << "Please use the / to sperate the day and year. ";
         }
@@ -120,14 +118,14 @@ void newAcc(){
     }
         
 
-    if(isValidDOB(month, day, year) == false){
+    if(isValidDOB(dob[0], dob[1], dob[2]) == false){
         cout << "Date of birth is invalid" << endl;
         valid = 0;
     }
     if(valid == 1){
         cout << "Please enter in your address:";
         cin.ignore();        
-        getline(cin, addy);
+        getline(cin, address);
     }
     if(valid == 1){
         cout << "Enter your pin:" << endl;
@@ -138,8 +136,12 @@ void newAcc(){
         valid = 0;
     }
     if(valid == 1){
-        cout << "your info is " << fname << " " << lname << " from " << addy << " born on " << month << "/" << day  << "/" << year << endl;        
+        cout << endl;
+        cout << "Your info is " << fname << " " << lname << " from " << address << " born on " << dob[0] << "/" << dob[1]  << "/" << dob[2] << "\n" <<endl;   
+        createOutputFile();     
     }
+
+    
     
 }
 
@@ -304,7 +306,6 @@ void start(int argc, char **argv){
 int main(int argc, char **argv){
     // process_debit();
     start(argc, argv);
-    // createOutputFile();
 
     return 0;
 }
