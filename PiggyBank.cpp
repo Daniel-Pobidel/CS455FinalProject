@@ -14,6 +14,8 @@
 #include <sstream>
 using namespace std;
 
+void process_debit();
+
 //temp variables hard coded for testing, these will be populated by user input
 string fname = "Dan", lname="Pobidel", address = "400 Road st, New britain, CT, 06051", account;
 int dob[3]= {07,10,1999};
@@ -21,7 +23,8 @@ int pin = 0000;
 double balance = 0.00;
 long verificationCode=100000000000000000;
 vector <double> transactions;
-string tranDates[512]={""};
+vector <string> tranDates;
+string accFileName;
 
 int calcBalance(){
     balance = 0;
@@ -89,7 +92,7 @@ bool loadInputFile(const char *filename){
 
         }
 
-        if(currLine > 8 && !readTran){
+        if(currLine > 8){
             //read transactions
             getline(ss, temp, '$'); //sign (+/-)
 
@@ -103,13 +106,14 @@ bool loadInputFile(const char *filename){
                 sscanf(temp.c_str(), "%lf", &tempDouble);
                 tempDouble *= -1; 
                 transactions.push_back(tempDouble);
-            }   
-            //readTran = true;
+            }
+
+            //read timestamps   
+
 
 
             //read balance
-            getline(ss, temp, ':');
-            if(temp.compare("Balance") == 0) {
+            if(temp.compare("Balance: ") == 0) {
                 getline(ss, temp, '$');
                 getline(ss, temp);
                 sscanf(temp.c_str(), "%lf", &balance);
@@ -276,13 +280,63 @@ void usage(){
     cout << "-h            Display Help" << endl;
 }
 /* TODO */
-void showAccount(){cout << "showAccoutnt" << endl;}
+void showAccount(){cout << "showAccount" << endl;}
+
+//Dan
+void withdraw(const char *filename){
+    double withdrawlAmount;
+    cout << "Current balance: $" <<  fixed << setprecision(2) << balance << endl;
+    cout << "How much would you like to withdrawl? ";
+    double x;
+    if (cin >> x) {
+      // valid number
+      if(withdrawlAmount > balance){
+        cout << "You dont have that much money!\n" << endl;
+        withdraw(filename);
+      }
+      else if(withdrawlAmount < 0){
+        cout << "You can't withdrawl negative money!\n" << endl;
+        withdraw(filename);
+      }
+      else{
+        cin.clear();
+        cin >> withdrawlAmount;
+
+        time_t t = time(0);   // get time now
+        tm* currTime = std::localtime(&t);
+        string timestamp = to_string((currTime->tm_mon + 1)) + "/" + to_string(currTime->tm_mday) + "/"+ to_string((currTime->tm_year + 1900))+" " 
+                      + to_string(currTime->tm_hour-4) + ":" + to_string(currTime->tm_min);
+        tranDates.push_back(timestamp);
+
+        balance -= withdrawlAmount;
+
+        cout << "You withdrew $" <<  fixed << setprecision(2) << withdrawlAmount << endl;
+
+        withdrawlAmount *= -1;
+        transactions.push_back(withdrawlAmount);
+        
+        cout << "New balance: $" << fixed << setprecision(2) << balance << endl;
+        cout << "Returning to main menu...\n" <<endl;
+        process_debit();
+      }
+    } else {
+      // not a valid number
+      cout << "Invalid Input! Please input a numerical value." << endl;
+      cin.clear();
+      withdraw(filename);
+      
+    }
+}
+
 /* TODO */
-void withdraw(){}
+void deposit(const char *filename ){
+
+}
+
 /* TODO */
-void deposit(){}
-/* TODO */
-void changeSettings(){}
+void changeSettings(){
+
+}
 
 // Radek
 void process_debit(){
@@ -297,9 +351,9 @@ void process_debit(){
     if (input == 's' || input == 'S')
         showAccount();
     else if (input == 'w' || input == 'W')
-        withdraw();
+        withdraw(accFileName.c_str());
     else if (input == 'd' || input == 'D')
-        deposit();
+        deposit(accFileName.c_str());
     else if (input == 'a' || input == 'A')
         changeSettings();
     else if (input == 'q' || input == 'Q'){
@@ -374,6 +428,7 @@ void start(int argc, char **argv){
         switch (c){
             case 'd':
                 dvalue = optarg;
+                accFileName = dvalue;
                 flags += (1-dflag); // Doesn't count multiple times
                 dflag = 1;
                 break;
