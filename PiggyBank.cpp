@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdio>
 #include <iomanip>
+#include <bits/stdc++.h>
 #include <stdio.h>
 #include <chrono>
 #include <ctime> 
@@ -17,8 +18,91 @@ string fname = "Dan", lname="Pobidel", address = "400 Road st, New britain, CT, 
 int dob[3]= {07,10,1999};
 int pin = 0000;
 long verificationCode=100000000000000000;
-int transactions[512]={20,10,5,5,-10};
-string tranDates[512]={"01/01/2021","01/02/2021","01/03/2021","01/04/2021","01/05/2021"};
+int transactions[512]={};
+string tranDates[512]={""};
+
+//Dan
+//Loads data from given input file into global variables
+void loadInputFile(const char *filename){
+    FILE *f;
+    int currLine = 0;
+    int size = 1024, pos;
+    int c;
+    char *buffer = (char *)malloc(size);
+
+    if(!filename || strlen(filename)<10) throw "File name too short.";
+    
+    f = fopen(filename,"r");
+
+    if(f) {
+      string temp;
+      do { // read all lines in file
+        pos = 0;
+        do{ // read one line
+          c = fgetc(f);
+          if(c != EOF) buffer[pos++] = (char)c;
+          if(pos >= size - 1) { // increase buffer length - leave room for 0
+            size *=2;
+            buffer = (char*)realloc(buffer, size);
+          }
+        }while(c != EOF && c != '\n');
+        buffer[pos] = 0;
+        // line is now in buffer
+        istringstream ss(buffer);
+
+        //read first and last name
+        if(currLine == 1){
+            ss >> fname;
+            ss >> lname;
+        }
+
+        //read date of birth
+        if(currLine == 2){
+            char delim;
+            ss >> dob[0] >> delim;
+            ss >> dob[1] >> delim;
+            ss >> dob[2] >> delim;
+        }
+
+        //read address
+        if(currLine == 3){
+            address = buffer;
+        }
+
+        //read Account #
+        if(currLine == 4 ){
+            getline(ss, temp, ':');
+            getline(ss, temp, ' ');
+            getline(ss,account);
+
+        }
+
+        //TO-DO Read transactions
+
+        
+        currLine++;
+
+      } while(c != EOF); 
+      fclose(f); 
+
+    
+        // cout <<fname <<endl;
+        // cout<<lname <<endl;
+        // cout << dob[0] << "/" << dob[1] << "/" << dob[2] << endl;
+        // cout << address << endl;
+        // cout << account << endl;
+        // //cout << transactions << endl;
+     cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
+          
+    }
+    else{
+        throw "Failed to open, specified file not found.";
+
+    }
+
+
+    
+}
 
 //Dan
 void loadOutputFileTemplate(const char *filename){
@@ -305,7 +389,8 @@ void start(int argc, char **argv){
 
 int main(int argc, char **argv){
     // process_debit();
-    start(argc, argv);
+    //start(argc, argv);
+    loadInputFile("Bezos_PiggyCard_4.16.2021.15.53.0.txt");
 
     return 0;
 }
