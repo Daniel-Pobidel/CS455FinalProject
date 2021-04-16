@@ -17,6 +17,7 @@ using namespace std;
 string fname = "Dan", lname="Pobidel", address = "400 Road st, New britain, CT, 06051", account;
 int dob[3]= {07,10,1999};
 int pin = 0000;
+double balance = 0.00;
 long verificationCode=100000000000000000;
 int transactions[512]={};
 string tranDates[512]={""};
@@ -25,7 +26,7 @@ string tranDates[512]={""};
 //Loads data from given input file into global variables
 bool loadInputFile(const char *filename){
     FILE *f;
-    int currLine = 0;
+    int currLine = 1;
     int size = 1024, pos;
     int c;
     char *buffer = (char *)malloc(size);
@@ -51,13 +52,13 @@ bool loadInputFile(const char *filename){
         istringstream ss(buffer);
 
         //read first and last name
-        if(currLine == 1){
+        if(currLine == 2){
             ss >> fname;
             ss >> lname;
         }
 
         //read date of birth
-        if(currLine == 2){
+        if(currLine == 3){
             char delim;
             ss >> dob[0] >> delim;
             ss >> dob[1] >> delim;
@@ -65,21 +66,32 @@ bool loadInputFile(const char *filename){
         }
 
         //read address
-        if(currLine == 3){
+        if(currLine == 4){
             address = buffer;
         }
 
         //read Account #
-        if(currLine == 4 ){
+        if(currLine == 5 ){
             getline(ss, temp, ':');
             getline(ss, temp, ' ');
             getline(ss,account);
 
         }
 
-        //TO-DO Read transactions
+        if(currLine > 8){
+            //read transactions
 
-        
+
+            //read balance
+            getline(ss, temp, ':');
+            if(temp.compare("Balance") == 0) {
+                getline(ss, temp, '$');
+                getline(ss, temp);
+                sscanf(temp.c_str(), "%lf", &balance);
+            };
+
+            //TO-DO read and check verification code
+        }
         currLine++;
 
       } while(c != EOF); 
@@ -91,6 +103,7 @@ bool loadInputFile(const char *filename){
         // cout << dob[0] << "/" << dob[1] << "/" << dob[2] << endl;
         // cout << address << endl;
         // cout << account << endl;
+        //cout << fixed << setprecision(2) << balance << endl;
         // //cout << transactions << endl;
       cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
       return true;    
