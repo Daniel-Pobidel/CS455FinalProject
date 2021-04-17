@@ -1,9 +1,10 @@
-
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <cstdio>
 #include <iomanip>
 #include <bits/stdc++.h>
+#include <sstream>
 #include <stdio.h>
 #include <chrono>
 #include <ctime> 
@@ -27,9 +28,12 @@ vector <double> transactions;
 vector <string> tranDates;
 string accFileName;
 
+
+//Dan
+//temp func, could be used for verifying balance == transaction total, may not be used
 int calcBalance(){
     balance = 0;
-    for(int tran :transactions){
+    for(double tran :transactions){
         balance += tran;
     }
     return balance;
@@ -38,7 +42,10 @@ int calcBalance(){
 //Dan
 //Loads data from given input file into global variables
 bool loadInputFile(const char *filename){
+
     FILE *f;
+    transactions.clear();
+    tranDates.clear();
     bool readTran = false;
     int currLine = 1;
     int size = 1024, pos;
@@ -101,17 +108,21 @@ bool loadInputFile(const char *filename){
                 getline(ss, temp, ' '); //amount (dollars)
                 sscanf(temp.c_str(), "%lf", &tempDouble);
                 transactions.push_back(tempDouble);
+                //read timestamps
+                getline(ss, temp, '[');
+                getline(ss, temp, ']');
+                tranDates.push_back(temp); 
             }
             else if(temp.compare("-") == 0){
                 getline(ss, temp, ' '); //amount (dollars)
                 sscanf(temp.c_str(), "%lf", &tempDouble);
                 tempDouble *= -1; 
                 transactions.push_back(tempDouble);
-            }
-
-            //read timestamps   
-
-
+                //read timestamps
+                getline(ss, temp, '[');
+                getline(ss, temp, ']');
+                tranDates.push_back(temp); 
+            }  
 
             //read balance
             if(temp.compare("Balance: ") == 0) {
@@ -128,14 +139,16 @@ bool loadInputFile(const char *filename){
       fclose(f); 
 
         //below prints input from file
-        // cout <<fname <<endl;
-        // cout<<lname <<endl;
-        // cout << dob[0] << "/" << dob[1] << "/" << dob[2] << endl;
-        // cout << address << endl;
-        // cout << account << endl;
-        //cout << fixed << setprecision(2) << balance << endl;
-        //for(int i =0; i<transactions.size(); i++)
-         //cout << fixed << setprecision(2) << transactions.at(i) << endl;
+        // cout << "fname: " <<fname <<endl;
+        // cout <<"lname: " <<lname <<endl;
+        // cout <<"dob: " << dob[0] << "/" << dob[1] << "/" << dob[2] << endl;
+        // cout << "address: " << address << endl;
+        // cout << "account #: "<< account << endl;
+        // cout << "balance" << fixed << setprecision(2) << balance << endl;
+        // for(int i =0; i<transactions.size(); i++)
+        //  cout << "transaciton" << fixed << setprecision(2) << transactions.at(i) << endl;
+        //  for(int i =0; i<tranDates.size(); i++)
+        //  cout << "transaction date: " << tranDates.at(i) << endl;
       cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
       return true;    
     }
@@ -149,11 +162,29 @@ bool loadInputFile(const char *filename){
 
 //Dan
 void loadOutputFileTemplate(const char *filename){
+    ostringstream temp;
+    temp<<setprecision(3) << balance;
     string header = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Bank of Piggy~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
-    string accountInfo = fname + " " + lname + "\n" + to_string(dob[0])+ "/" + to_string(dob[1])+ "/" + to_string(dob[2]) + "\n" + address + "\n" + "Account #: " + account + "\n\n";
-    string transHeader = "Transactions \n~~~~~~~~~~~~~\n";
-    string footer = "\n\n\n\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + to_string(verificationCode) + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
-    string fileTemplate = header + accountInfo + transHeader + footer;
+    string accountInfo = fname + " " + lname + "\n" + to_string(dob[0])+ "/" + to_string(dob[1])+ "/" + to_string(dob[2]) + "\n" + address + "Account #: " + account + "\n\n";
+    string transHeader = "Transactions \n~~~~~~~~~~~~~\n\n";
+    string transactionsHistory;
+    string footer = "~~~~~~\nBalance: $" + temp.str() + "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + to_string(verificationCode) + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    
+    for(int i=0; i<transactions.size();i++){
+        if(transactions.at(i) >= 0){
+            transactionsHistory += "+$";
+            transactionsHistory += (to_string(transactions.at(i)));
+        }
+        else{
+            double temp = transactions.at(i)*-1;
+            transactionsHistory += "-$";
+            transactionsHistory += to_string(temp);            
+        }
+        transactionsHistory += "                                                                     [";
+        transactionsHistory += ( tranDates[i] + "]\n\n");
+    }
+    
+    string fileTemplate = header + accountInfo + transHeader + transactionsHistory + footer;
 
     FILE *f;
     f=fopen(filename, "w");
@@ -285,8 +316,7 @@ void withdraw(const char *filename){
     double withdrawlAmount;
     cout << "Current balance: $" <<  fixed << setprecision(2) << balance << endl;
     cout << "How much would you like to withdrawl? ";
-    double x;
-    if (cin >> x) {
+    if (cin >> withdrawlAmount) {
       // valid number
       if(withdrawlAmount > balance){
         cout << "You dont have that much money!\n" << endl;
@@ -297,9 +327,6 @@ void withdraw(const char *filename){
         withdraw(filename);
       }
       else{
-        cin.clear();
-        cin >> withdrawlAmount;
-
         time_t t = time(0);   // get time now
         tm* currTime = std::localtime(&t);
         string timestamp = to_string((currTime->tm_mon + 1)) + "/" + to_string(currTime->tm_mday) + "/"+ to_string((currTime->tm_year + 1900))+" " 
@@ -358,6 +385,7 @@ void process_debit(){
             changeSettings();
         else if (input[0] == 'q' || input[0] == 'Q'){
             /* TODO Gracefully exit the program */
+            loadOutputFileTemplate(accFileName.c_str());
             cout << "Logging off" << endl;
             exit(0);
         }else cout << "Command not found!" << endl;
