@@ -1,3 +1,4 @@
+
 #include <cstdlib>
 #include <iostream>
 #include <cstdio>
@@ -10,9 +11,9 @@
 #include <string.h>
 #include <vector>
 #include <string>
-#include <unistd.h>
-#include <sstream>
 using namespace std;
+
+#include "helpers.cpp"
 
 void process_debit();
 
@@ -266,11 +267,8 @@ void newAcc(){
         cout << "Your info is " << fname << " " << lname << " from " << address << " born on " << dob[0] << "/" << dob[1]  << "/" << dob[2] << "\n" <<endl;   
         createOutputFile();     
     }
-
-    
     
 }
-
 
 // Radek
 void usage(){
@@ -341,56 +339,75 @@ void changeSettings(){
 // Radek
 void process_debit(){
     /* TODO Show basic info */
-    system("echo Type 's' to show account information");
-    system("echo Type 'w' to withdraw");
-    system("echo Type 'd' to deposit");
-    system("echo Type 'a' to change account\\'s information");
-    system("echo Type 'q' to quit");
-    char input;
-    cin >> input;
-    if (input == 's' || input == 'S')
-        showAccount();
-    else if (input == 'w' || input == 'W')
-        withdraw(accFileName.c_str());
-    else if (input == 'd' || input == 'D')
-        deposit(accFileName.c_str());
-    else if (input == 'a' || input == 'A')
-        changeSettings();
-    else if (input == 'q' || input == 'Q'){
-        /* TODO Gracefully exit the program */
-        cout << "Logging off" << endl;
-        exit(0);
-    }else cout << "Command not found!" << endl;;
+    while(1){
+        system("echo Type 's' to show account information");
+        system("echo Type 'w' to withdraw");
+        system("echo Type 'd' to deposit");
+        system("echo Type 'a' to change account\\'s information");
+        system("echo Type 'q' to quit");
+        string input;
+        cin >> input;
+        if (input.size() != 1) cout << "Please enter only 1 letter!" << endl;
+        else if (input[0] == 's' || input[0] == 'S')
+            showAccount();
+        else if (input[0] == 'w' || input[0] == 'W')
+            withdraw(accFileName.c_str());
+        else if (input[0] == 'd' || input[0] == 'D')
+            deposit(accFileName.c_str());
+        else if (input[0] == 'a' || input[0] == 'A')
+            changeSettings();
+        else if (input[0] == 'q' || input[0] == 'Q'){
+            /* TODO Gracefully exit the program */
+            cout << "Logging off" << endl;
+            exit(0);
+        }else cout << "Command not found!" << endl;
+    }
 
+}
+
+/* TODO checks if debit file is legit (seperate method maybe) */
+bool isDebitLegit(const char * debit){
+    return true;
+}
+
+/* TODO check is account is not locked */
+bool isUnlocked(const char * debit){
+    return true;
 }
 
 // Radek
 void start_debit(char * debit){
     if (loadInputFile(debit)){
-        if (true)/* TODO checks if debit file is legit (seperate method maybe) */{
-            if (true)/* TODO check is account is not locked */{
+        if (isDebitLegit(debit)){
+            if (isUnlocked(debit)){
                 cout << "Debit Card Read Successfully" << endl;
                 int tries = 3;
-                int pinEnter;
+                string pinEnter;
                 bool success = false;
                 while (tries > 0 && !success ){
-                    cout << "Enter Debit Card's 4 digitPin [0-9 values only]:" << endl;
-                    system("echo off");
+                    cout << "Enter Debit Card's 4 digitPin [0-9 values only]:";
+                    showInput(false);
                     cin >> pinEnter;
-                    while(cin.fail() || to_string(pinEnter).length() != 4)
+                    showInput(true);
+                    cout << endl;
+                    while(!isNumber(pinEnter) || pinEnter.length() != 4)
                     {
                         cout << "Incorrect Input. Please Enter Debit Card's 4 digitPin [0-9 values only]:" << endl;
                         cin.clear();
                         cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        showInput(false);
                         cin >> pinEnter;
+                        showInput(true);
+                        cout << endl;
                     }
-                    if (pinEnter == 1234)/* TODO check if pin matches */{
+                    string hashedPin = hashString(pinEnter);
+                    if (hashedPin.compare(hashString("1234")) == 0){ /* TODO switch 'hashString("1234")' to actual hash value */
                         cout << "Pin sucessfully Entered!" << endl;
                         success = true;
                         process_debit();
                     }else{
                         tries--;
-                        cout << "Pin does not match! Please tried again. " << tries << " remaining before locked down." << endl;
+                        cout << "Pin does not match! Please try again. " << tries << " remaining before locked down." << endl;
                         if (!tries){
                             /* TODO add timestamp to file to lock the acccount. (Like 20 secs or so) */
                             fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked for x time!\n");
@@ -480,6 +497,7 @@ void start(int argc, char **argv){
 }
 
 int main(int argc, char **argv){
+
     // process_debit();
     start(argc, argv);
     //loadInputFile("Bezos_PiggyCard_4.16.2021.15.53.0.txt");
