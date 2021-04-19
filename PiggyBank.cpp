@@ -25,9 +25,9 @@ int dob[3]= {07,10,1999};
 int pin = 0000;
 double balance = 0.00;
 bool isLocked = false;
-string hashedPin=hashString("1234");
+string unlockTimestamp;
+string hashedPin="1";
 string dataValidationCode;
-bool islocked = false;
 vector <double> transactions;
 vector <string> tranDates;
 string accFileName;
@@ -76,7 +76,7 @@ bool loadInputFile(const char *filename){
 
         buffer[pos] = 0;
         // line is now in buffer
-        istringstream ss(buffer);
+        istringstream ss(buffer);//here
 
         //read first and last name
         if(currLine == 2){
@@ -146,17 +146,30 @@ bool loadInputFile(const char *filename){
             };
         }
 
-        //read and check verification code(TO-DO)
-        if(readTran){
+        if(readTran && hashedPin.compare("1")==0){
             getline(ss, temp, '~');
-            //iterate through each '~' character until verification code is read
-            while(temp == ""){
+            //iterate through each '~' character until hashed pin is read
+            while(temp == "" && hashedPin.compare("1")==0){
                 getline(ss, temp, '~');
+                if(temp.compare("") != 0){
+                    cout << "read pin" << endl;
+                    hashedPin = temp;
+                }
             }
-            hashedPin = temp;
         }
 
-            //TO-DO check if there is file lock timestamp present 
+        //read lock timetamp if exists after pin has been read
+        if(hashedPin.compare("1")!=0){
+            getline(ss, temp, '[');
+            // while(temp == ""){
+            //     getline(ss, temp, '[');
+            if(temp.compare("!!! ACCOUNT LOCKED !!! ACCOUNT WILL UNLOCK AT ")==0){
+                    getline(ss, unlockTimestamp, ']');
+                }
+            //}
+        }
+
+        
         currLine++;
 
       } while(c != EOF); 
@@ -175,6 +188,7 @@ bool loadInputFile(const char *filename){
         // for(int i =0; i<tranDates.size(); i++)
         //  cout << "transaction date: " << tranDates.at(i) << endl;
         // cout << "verification code: " << hashedPin << endl;
+        // cout << "unlock timestamp " << unlockTimestamp << endl;
       cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
 
       //TODO - validate file has not been modified
@@ -198,6 +212,10 @@ void loadOutputFileTemplate(const char *filename){
     string transHeader = "Transactions \n~~~~~~~~~~~~~\n\n";
     string transactionsHistory;
     string footer = "~~~~~~\nBalance: $" + temp.str() + "\n\n~~~~~~~~~~~~~~~~~" + hashedPin + "~~~~~~~~~~~~~~~~~";
+
+    if(isLocked){
+        footer += "\n\n!!! ACCOUNT LOCKED !!! ACCOUNT WILL UNLOCK AT [" + unlockTimestamp +"]";
+    }
     
     for(int i=0; i<transactions.size();i++){
         if(transactions.at(i) >= 0){
