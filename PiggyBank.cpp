@@ -24,7 +24,10 @@ string fname = "Dan", lname="Pobidel", address = "400 Road st, New britain, CT, 
 int dob[3]= {07,10,1999};
 int pin = 0000;
 double balance = 0.00;
-string verificationCode=hashString("1234");
+bool isLocked = false;
+string unlockTimestamp;
+string hashedPin="1";
+string dataValidationCode;
 vector <double> transactions;
 vector <string> tranDates;
 string accFileName;
@@ -73,7 +76,7 @@ bool loadInputFile(const char *filename){
 
         buffer[pos] = 0;
         // line is now in buffer
-        istringstream ss(buffer);
+        istringstream ss(buffer);//here
 
         //read first and last name
         if(currLine == 2){
@@ -102,7 +105,14 @@ bool loadInputFile(const char *filename){
 
         }
 
-        if(currLine > 8 && readTran == false){
+        //read data validation code
+        if(currLine == 6 ){
+            getline(ss, temp, ':');
+            getline(ss, temp, ' ');
+            getline(ss,dataValidationCode);
+        }
+
+        if(currLine > 9 && readTran == false){
             //read transactions
             getline(ss, temp, '$'); //sign (+/-)
 
@@ -136,17 +146,30 @@ bool loadInputFile(const char *filename){
             };
         }
 
-        //read and check verification code(TO-DO)
-        if(readTran){
+        if(readTran && hashedPin.compare("1")==0){
             getline(ss, temp, '~');
-            //iterate through each '~' character until verification code is read
-            while(temp == ""){
+            //iterate through each '~' character until hashed pin is read
+            while(temp == "" && hashedPin.compare("1")==0){
                 getline(ss, temp, '~');
+                if(temp.compare("") != 0){
+                    cout << "read pin" << endl;
+                    hashedPin = temp;
+                }
             }
-            verificationCode = temp;
         }
 
-            //TO-DO check if there is file lock timestamp present 
+        //read lock timetamp if exists after pin has been read
+        if(hashedPin.compare("1")!=0){
+            getline(ss, temp, '[');
+            // while(temp == ""){
+            //     getline(ss, temp, '[');
+            if(temp.compare("!!! ACCOUNT LOCKED !!! ACCOUNT WILL UNLOCK AT ")==0){
+                    getline(ss, unlockTimestamp, ']');
+                }
+            //}
+        }
+
+        
         currLine++;
 
       } while(c != EOF); 
@@ -158,13 +181,17 @@ bool loadInputFile(const char *filename){
         // cout <<"dob: " << dob[0] << "/" << dob[1] << "/" << dob[2] << endl;
         // cout << "address: " << address << endl;
         // cout << "account #: "<< account << endl;
+        // cout << "DVC: " << dataValidationCode << endl;
         // cout << "balance" << fixed << setprecision(2) << balance << endl;
         // for(int i =0; i<transactions.size(); i++)
         //  cout << "transaction" << fixed << setprecision(2) << transactions.at(i) << endl;
         // for(int i =0; i<tranDates.size(); i++)
         //  cout << "transaction date: " << tranDates.at(i) << endl;
-        // cout << "verification code: " << verificationCode << endl;
+        // cout << "verification code: " << hashedPin << endl;
+        // cout << "unlock timestamp " << unlockTimestamp << endl;
       cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
+
+      //TODO - validate file has not been modified
       return true;    
     }
     else{
@@ -180,10 +207,15 @@ void loadOutputFileTemplate(const char *filename){
     ostringstream temp;
     temp<<setprecision(3) << balance;
     string header = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Bank of Piggy~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
-    string accountInfo = fname + " " + lname + "\n" + to_string(dob[0])+ "/" + to_string(dob[1])+ "/" + to_string(dob[2]) + "\n" + address + "Account #: " + account + "\n\n";
+    string accountInfo = fname + " " + lname + "\n" + to_string(dob[0])+ "/" + to_string(dob[1])+ "/" + to_string(dob[2]) + "\n" + address + "Account #: " + account + 
+                        "\nData Validation code: " + dataValidationCode + "\n\n";
     string transHeader = "Transactions \n~~~~~~~~~~~~~\n\n";
     string transactionsHistory;
-    string footer = "~~~~~~\nBalance: $" + temp.str() + "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + verificationCode + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    string footer = "~~~~~~\nBalance: $" + temp.str() + "\n\n~~~~~~~~~~~~~~~~~" + hashedPin + "~~~~~~~~~~~~~~~~~";
+
+    if(isLocked){
+        footer += "\n\n!!! ACCOUNT LOCKED !!! ACCOUNT WILL UNLOCK AT [" + unlockTimestamp +"]";
+    }
     
     for(int i=0; i<transactions.size();i++){
         if(transactions.at(i) >= 0){
@@ -585,7 +617,7 @@ void start_debit(char * debit){
                         cout << endl;
                     }
                     string hashedPin = hashString(pinEnter);
-                    if (hashedPin.compare(verificationCode) == 0){ /* TODO switch 'hashString("1234")' to actual hash value */
+                    if (hashedPin.compare(hashedPin) == 0){ /* TODO switch 'hashString("1234")' to actual hash value */
                         cout << "Pin sucessfully Entered!" << endl;
                         success = true;
                         process_debit();

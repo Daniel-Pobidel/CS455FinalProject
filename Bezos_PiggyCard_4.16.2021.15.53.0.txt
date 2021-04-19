@@ -1,8 +1,9 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Bank of Piggy~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Jeff Bezos
+Trump Bezos
 1/22/1933
 Amazon rainforest
 Account #: 4.16.2021.15.53.0
+Data Validation code: 03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4
 
 Transactions 
 ~~~~~~~~~~~~~
@@ -24,4 +25,6 @@ Transactions
 ~~~~~~
 Balance: $4
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4~~~~~~~~~~~~~~~~~
+
+!!! ACCOUNT LOCKED !!! ACCOUNT WILL UNLOCK AT [9:55]
