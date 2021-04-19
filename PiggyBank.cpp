@@ -259,15 +259,19 @@ bool isValidDOB(int month, int day, int year){
 void takeFName(){
     cout << "Please enter in your first name: ";
     cin >> fname;
+    cout << endl; 
 }
 void takeLName(){
     cout << "Please enter in your last name: ";
     cin >> lname;
+    cout << endl; 
 }
 void takeAddress(){
     cout << "Please enter in your address:";
     cin.ignore();        
     getline(cin, address);
+    address += "\n";
+    cout << endl; 
 }
 int takePin(){
     int tempPin;
@@ -282,6 +286,7 @@ int takePin(){
         return 0;
     }
     pin = tempPin;
+    cout << endl; 
     return 1;
 }
 
@@ -415,7 +420,7 @@ void askForNewInfo(int info){
     //while loop to keep going if 'y' or 'n' is not used
     while(tolower(answer[0]) != 'y' || tolower(answer[0]) != 'n'){
         // ask for user's first name
-        cout << "Would you like to change the " << typeOfInfo << " (y/n)" << endl;
+        cout << "Would you like to change the " << typeOfInfo << " (y/n): ";
         cin >> answer;
         // check to see if the user input is 1 character
         // then check to see if the user input is either a 'y' 'Y' 'n' 'N'
@@ -438,7 +443,8 @@ void askForNewInfo(int info){
             if(info == 4){
                 int x = takePin();
                 break;
-            }            
+            }
+                       
         }else if(answer[0] == 'n' || answer[0] == 'n')
             break;
     }
