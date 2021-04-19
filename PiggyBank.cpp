@@ -70,6 +70,7 @@ bool loadInputFile(const char *filename){
             buffer = (char*)realloc(buffer, size);
           }
         }while(c != EOF && c != '\n');
+
         buffer[pos] = 0;
         // line is now in buffer
         istringstream ss(buffer);
@@ -101,7 +102,7 @@ bool loadInputFile(const char *filename){
 
         }
 
-        if(currLine > 8){
+        if(currLine > 8 && readTran == false){
             //read transactions
             getline(ss, temp, '$'); //sign (+/-)
 
@@ -130,10 +131,22 @@ bool loadInputFile(const char *filename){
                 getline(ss, temp, '$');
                 getline(ss, temp);
                 sscanf(temp.c_str(), "%lf", &balance);
-            };
 
-            //TO-DO read and check verification code
+                readTran = true;
+            };
         }
+
+        //read and check verification code(TO-DO)
+        if(readTran){
+            getline(ss, temp, '~');
+            //iterate through each '~' character until verification code is read
+            while(temp == ""){
+                getline(ss, temp, '~');
+            }
+            sscanf(temp.c_str(), "%lu", &verificationCode);
+        }
+
+            //TO-DO check if there is file lock timestamp present 
         currLine++;
 
       } while(c != EOF); 
@@ -147,9 +160,10 @@ bool loadInputFile(const char *filename){
         // cout << "account #: "<< account << endl;
         // cout << "balance" << fixed << setprecision(2) << balance << endl;
         // for(int i =0; i<transactions.size(); i++)
-        //  cout << "transaciton" << fixed << setprecision(2) << transactions.at(i) << endl;
-        //  for(int i =0; i<tranDates.size(); i++)
+        //  cout << "transaction" << fixed << setprecision(2) << transactions.at(i) << endl;
+        // for(int i =0; i<tranDates.size(); i++)
         //  cout << "transaction date: " << tranDates.at(i) << endl;
+        // cout << "verification code: " << verificationCode << endl;
       cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
       return true;    
     }
