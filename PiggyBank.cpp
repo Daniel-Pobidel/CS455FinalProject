@@ -379,7 +379,7 @@ void withdraw(const char *filename){
 
         balance -= withdrawlAmount;
 
-        cout << "You withdrew $" <<  fixed << setprecision(2) << withdrawlAmount << endl;
+        cout << "You withdrew $" <<  fixed << setprecision(2) << withdrawlAmount  << endl;
 
         withdrawlAmount *= -1;
         transactions.push_back(withdrawlAmount);
@@ -399,6 +399,46 @@ void withdraw(const char *filename){
 
 /* TODO */
 void deposit(const char *filename ){
+    double depositAmount;
+    cout << "Current balance: $" <<  fixed << setprecision(2) << balance << endl;
+    cout << "How much would you like to deposit? ";
+    if (cin >> depositAmount) {
+      // valid number
+      if(depositAmount > 1000){
+        cout << "You may only deposit up to $1000 at a time\n" << endl;
+        deposit(filename);
+      }
+      else if(depositAmount < 0){
+        cout << "You can't deposit negative money!\n" << endl;
+        deposit(filename);
+      }
+      else if(depositAmount == 0){
+          cout << "You deposited nothing!\n" << endl;
+      }
+      else{
+        time_t t = time(0);   // get time now
+        tm* currTime = std::localtime(&t);
+        string timestamp = to_string((currTime->tm_mon + 1)) + "/" + to_string(currTime->tm_mday) + "/"+ to_string((currTime->tm_year + 1900))+" " 
+                      + to_string(currTime->tm_hour-4) + ":" + to_string(currTime->tm_min);
+        tranDates.push_back(timestamp);
+
+        balance += depositAmount;
+
+        cout << "You deposit $" <<  fixed << setprecision(2) << depositAmount << endl;
+
+        transactions.push_back(depositAmount);
+        
+        cout << "New balance: $" << fixed << setprecision(2) << balance << endl;
+        cout << "Returning to main menu...\n" <<endl;
+        process_debit();
+      }
+    } else {
+      // not a valid number
+      cout << "Invalid Input! Please input a numerical value." << endl;
+      cin.clear();
+      withdraw(filename);
+      
+    }
 
 }
 
