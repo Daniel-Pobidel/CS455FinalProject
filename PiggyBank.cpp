@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <iostream>
 #include <cstdio>
@@ -218,6 +219,8 @@ void createOutputFile(){
 // Ani
 // function is used to check if dob is valid
 bool isValidDOB(int month, int day, int year){
+    
+
     if(year > 9999 || year < 1903)
         return false;
     if(day < 1 || day > 31)
@@ -251,52 +254,88 @@ bool isValidDOB(int month, int day, int year){
 
     return true;
 }
-
+// Ani
+// User input functions:
+void takeFName(){
+    cout << "Please enter in your first name: ";
+    cin >> fname;
+}
+void takeLName(){
+    cout << "Please enter in your last name: ";
+    cin >> lname;
+}
+void takeAddress(){
+    cout << "Please enter in your address:";
+    cin.ignore();        
+    getline(cin, address);
+}
+int takePin(){
+    int tempPin;
+    cout << "Enter your pin:" << endl;
+    cin >> tempPin;
+    if(cin.fail()){
+        cout << "Please enter numbers only." << endl;
+        return 0;
+    }
+    if(tempPin < 1 || tempPin > 9999){
+        cout << "Pin is invalid" << endl;
+        return 0;
+    }
+    pin = tempPin;
+    return 1;
+}
 
 // Ani
 // Function to create new account
 // using local varaibles for now, only validaty check is to see if DOB.pin is in correct format. 
 void newAcc(){
+    // varaibles to hold the validity of each process
     int valid = 1;
-    cout << "Please enter in your first name: ";
-    cin >> fname;
-    cout << "Please enter in your last name: ";
-    cin >> lname;
+
+    // call standalone functions to get first and last name
+    takeFName();
+    takeLName();
+    
+    // Ask for user's dob. 
     cout << "Please enter your birthday (mm-dd-yyyy). Enter one after another seperated by /: ";
     cin >> dob[0];
+    // Makes sure the dob is entered in using correct format.
     if(cin.get() == '/'){
         cin >> dob[1];
         if(cin.get() == '/'){
             cin >> dob[2];
         }else{
-            cout << "Please use the / to sperate the day and year. ";
+            cout << "Please use the / to sperate the day and year and only use numbers. ";
+            valid = 0;
         }
     }else{
-        cout << "Please use the / to seperate the month and day.";
+        cout << "Please use the / to seperate the month and day and only use numbers.";
+        valid = 0;
     }
-        
-
+    
+    // Call function that will check if the dob is valid
     if(isValidDOB(dob[0], dob[1], dob[2]) == false){
         cout << "Date of birth is invalid" << endl;
         valid = 0;
     }
+
+    // If user input so far is valid, then as for user address.
     if(valid == 1){
-        cout << "Please enter in your address:";
-        cin.ignore();        
-        getline(cin, address);
+        takeAddress();
     }
+
+    // If user input so far is valid, then ask for Pin number.
     if(valid == 1){
-        cout << "Enter your pin:" << endl;
-        cin >> pin;
+        if(takePin() == 0){
+            valid = 0;
+        }
     }
-    if(pin < 1 || pin > 9999){
-        cout << "Pin is invalid" << endl;
-        valid = 0;
-    }
+
+    // If all user input is valid, show user their info and call createOutPut file to create an account 
     if(valid == 1){
         cout << endl;
         cout << "Your info is " << fname << " " << lname << " from " << address << " born on " << dob[0] << "/" << dob[1]  << "/" << dob[2] << "\n" <<endl;   
-        createOutputFile();     
+        createOutputFile();   
     }
     
 }
@@ -358,9 +397,66 @@ void deposit(const char *filename ){
 
 }
 
-/* TODO */
-void changeSettings(){
+// condensed function that will rotate through the types of user info that can be changed
+void askForNewInfo(int info){
+    // string answer for user input
+    string answer = "";
+    string typeOfInfo;
+    if(info == 1){
+        typeOfInfo = "first name";
+    }else if(info == 2){
+        typeOfInfo = "last name";
+    }else if(info == 3){
+        typeOfInfo = "address";
+    }else if(info == 4){
+        typeOfInfo = "PIN";
+    }
 
+    //while loop to keep going if 'y' or 'n' is not used
+    while(tolower(answer[0]) != 'y' || tolower(answer[0]) != 'n'){
+        // ask for user's first name
+        cout << "Would you like to change the " << typeOfInfo << " (y/n)" << endl;
+        cin >> answer;
+        // check to see if the user input is 1 character
+        // then check to see if the user input is either a 'y' 'Y' 'n' 'N'
+        // if user chooses yes, then call the appropirate user input functions.
+        if (answer.size() != 1){
+            cout << "Please enter only 1 letter!" << endl;
+        }else if(answer[0] == 'y' || answer[0] == 'Y'){
+            if(info == 1){
+                takeFName();
+                break;
+            }
+            if(info == 2){
+                takeLName();
+                break;
+            }
+            if(info == 3){
+                takeAddress();
+                break;
+            }
+            if(info == 4){
+                int x = takePin();
+                break;
+            }            
+        }else if(answer[0] == 'n' || answer[0] == 'n')
+            break;
+    }
+
+}
+
+
+//Ani
+// Change user settings using standalone functions
+void changeSettings(){
+    // ask for first name
+    askForNewInfo(1);
+    // ask for last name
+    askForNewInfo(2);
+    // ask for the address
+    askForNewInfo(3);
+    // ask for the PIN
+    askForNewInfo(4);
 }
 
 // Radek
