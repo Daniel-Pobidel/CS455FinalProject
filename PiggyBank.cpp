@@ -24,7 +24,7 @@ string fname = "Dan", lname="Pobidel", address = "400 Road st, New britain, CT, 
 int dob[3]= {07,10,1999};
 int pin = 0000;
 double balance = 0.00;
-long verificationCode=100000000000000000;
+string verificationCode=hashString("1234");
 vector <double> transactions;
 vector <string> tranDates;
 string accFileName;
@@ -143,7 +143,7 @@ bool loadInputFile(const char *filename){
             while(temp == ""){
                 getline(ss, temp, '~');
             }
-            sscanf(temp.c_str(), "%lu", &verificationCode);
+            verificationCode = temp;
         }
 
             //TO-DO check if there is file lock timestamp present 
@@ -183,7 +183,7 @@ void loadOutputFileTemplate(const char *filename){
     string accountInfo = fname + " " + lname + "\n" + to_string(dob[0])+ "/" + to_string(dob[1])+ "/" + to_string(dob[2]) + "\n" + address + "Account #: " + account + "\n\n";
     string transHeader = "Transactions \n~~~~~~~~~~~~~\n\n";
     string transactionsHistory;
-    string footer = "~~~~~~\nBalance: $" + temp.str() + "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + to_string(verificationCode) + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+    string footer = "~~~~~~\nBalance: $" + temp.str() + "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + verificationCode + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
     
     for(int i=0; i<transactions.size();i++){
         if(transactions.at(i) >= 0){
@@ -585,7 +585,7 @@ void start_debit(char * debit){
                         cout << endl;
                     }
                     string hashedPin = hashString(pinEnter);
-                    if (hashedPin.compare(hashString("1234")) == 0){ /* TODO switch 'hashString("1234")' to actual hash value */
+                    if (hashedPin.compare(verificationCode) == 0){ /* TODO switch 'hashString("1234")' to actual hash value */
                         cout << "Pin sucessfully Entered!" << endl;
                         success = true;
                         process_debit();
@@ -675,17 +675,10 @@ void start(int argc, char **argv){
             usage();
             exit(1);
         }
-        // Prints the rest of the arguments [can be deleted]
-        // for (index = optind; index < argc; index++)
-        //     printf ("Non-option argument %s\n", argv[index]);
 }
 
 int main(int argc, char **argv){
-
-    // process_debit();
     start(argc, argv);
-    //loadInputFile("Bezos_PiggyCard_4.16.2021.15.53.0.txt");
-
     return 0;
 }
 
