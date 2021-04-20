@@ -19,6 +19,8 @@ using namespace std;
 
 #include "./helpers.cpp"
 
+const string DEBIT_FOLDER = "src/DebitCards/";
+
 void process_debit(const char * debit);
 
 //temp variables hard coded for testing, these will be populated by user input
@@ -60,7 +62,7 @@ bool loadInputFile(const char *filename){
     int c;
     char *buffer = (char *)malloc(size);
 
-    if(strlen(filename)<10) throw "File name too short.";
+    if(strlen(filename)<(10+DEBIT_FOLDER.size())) throw "Error! File name too short.";
     
     f = fopen(filename,"r");
 
@@ -179,32 +181,12 @@ bool loadInputFile(const char *filename){
 
       } while(c != EOF); 
       fclose(f); 
-
-        //below prints input from file
-        // cout << "fname: " <<fname <<endl;
-        // cout <<"lname: " <<lname <<endl;
-        // cout <<"dob: " << dob[0] << "/" << dob[1] << "/" << dob[2] << endl;
-        // cout << "address: " << address << endl;
-        // cout << "account #: "<< account << endl;
-        // cout << "DVC: " << dataValidationCode << endl;
-        // cout << "balance" << fixed << setprecision(2) << balance << endl;
-        // for(int i =0; i<transactions.size(); i++)
-        //  cout << "transaction" << fixed << setprecision(2) << transactions.at(i) << endl;
-        // for(int i =0; i<tranDates.size(); i++)
-        //  cout << "transaction date: " << tranDates.at(i) << endl;
-        // cout << "verification code: " << hashedPin << endl;
-        // cout << "unlock timestamp " << unlockTimestamp << endl;
       cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
-
-      //TODO - validate file has not been modified
       return true;    
     }
     else{
-        throw "Failed to open, specified file not found.";
+        throw "Error! Failed to open, specified file not found.";
     }
-
-
-    
 }
 
 //Dan
@@ -738,8 +720,7 @@ void start(int argc, char **argv){
             usage();
             exit(1);
         }else if (dflag){
-            string folder = "src/DebitCards/";
-            string debit  = folder + dvalue;
+            string debit  = DEBIT_FOLDER + dvalue;
             start_debit(debit.c_str());
         }else if (nflag){ 
             fprintf (stdout, "Creating an account now.\n");
