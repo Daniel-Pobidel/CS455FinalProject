@@ -165,14 +165,18 @@ bool loadInputFile(const char *filename){
 
         //read lock timetamp if exists after pin has been read
         if(hashedPin.compare("1")!=0){
-            cout << "READ TUNESTANO" << endl;
-            isLocked = true;
             getline(ss, temp, '[');
             // while(temp == ""){
             //     getline(ss, temp, '[');
-            if(temp.compare("!!! ACCOUNT LOCKED !!! ACCOUNT WILL UNLOCK AT ")==0){
-                    getline(ss, unlockTimestamp, ']');
-                }
+            if(temp.compare("!!! ACCOUNT LOCKED !!! ACCOUNT WILL UNLOCK AT ")==0)
+            {
+                getline(ss, unlockTimestamp, ']');
+            }
+            if (!unlockTimestamp.empty()){
+                cout << "READ TUNESTANO" << endl;
+                isLocked = true;
+            } 
+
             //}
         }
 
@@ -190,7 +194,7 @@ bool loadInputFile(const char *filename){
 }
 
 //Dan
-string createOutputString(const char *filename){
+string createOutputString(){
     ostringstream temp;
     temp<<setprecision(3) << balance;
     string header = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Bank of Piggy~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
@@ -200,7 +204,7 @@ string createOutputString(const char *filename){
     string transactionsHistory;
     string footer = "~~~~~~\nBalance: $" + temp.str() + "\n\n~~~~~~~~~~~~~~~~~" + hashedPin + "~~~~~~~~~~~~~~~~~";
 
-    if(isLocked){
+    if(isLocked == true){
         footer += "\n\n!!! ACCOUNT LOCKED !!! ACCOUNT WILL UNLOCK AT [" + unlockTimestamp +"]";
     }
     
@@ -220,14 +224,21 @@ string createOutputString(const char *filename){
     
     return header + accountInfo + transHeader + transactionsHistory + footer;
 }
+// Dan
 void createOutputFile(const char *filename){
-    string fileTemplate = createOutputString(filename);
+    string fileTemplate = createOutputString();
     FILE *f;
     f=fopen(filename, "w");
     fputs(fileTemplate.c_str(), f);
     fclose(f);
 }
 
+/* Dan */
+string calculateDataValidationCode(){
+    dataValidationCode = "1";
+    entireFile = createOutputString();
+    return hashString(entireFile);
+}
 
 //Dan
 //This function is used for the creation of a new account file
@@ -241,64 +252,26 @@ void generateFileName(){
     string timestamp = to_string((currTime->tm_mon + 1)) + "." + to_string(currTime->tm_mday) + "."+ to_string((currTime->tm_year + 1900))+"." 
                       + to_string(currTime->tm_hour-4) + "." + to_string(currTime->tm_min) + "." + to_string(currTime->tm_sec) ;
 
-    string filename = lname + "_PiggyCard_" + timestamp + ".txt";
+    string filename = DEBIT_FOLDER + lname + "_PiggyCard_" + timestamp + ".txt";
     account = timestamp;
 
+    dataValidationCode = calculateDataValidationCode();
     createOutputFile((filename).c_str());
-
     cout << "Sucessfully created new account!" << endl;
     cout << "Your online piggy bank card is: " << filename << endl;
 }
 
 // Ani
-// function is used to check if dob is valid
-bool isValidDOB(int month, int day, int year){
-    
-
-    if(year > 9999 || year < 1903)
-        return false;
-    if(day < 1 || day > 31)
-        return false;
-    if(month < 1 || month > 12)
-        return false;
-
-    if(month == 2){
-        if( ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0) ){
-            if(day <= 29){
-                return true;
-            }else{
-                return false;
-            }
-        }else{
-            if(day <= 28){
-                return true;
-            }else{
-                return false;
-            }
-        }
-    }
-
-    if(month == 4 || month == 6 || month == 9 || month == 11){
-        if(day <= 30){
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    return true;
-}
-// Ani
 // User input functions:
 void takeFName(){
     cout << "Please enter in your first name: ";
     cin >> fname;
-    cout << endl; 
+    // cout << endl; 
 }
 void takeLName(){
     cout << "Please enter in your last name: ";
     cin >> lname;
-    cout << endl; 
+    // cout << endl; 
 }
 void takeAddress(){
     cout << "Please enter in your address:";
@@ -307,76 +280,72 @@ void takeAddress(){
     address += "\n";
     cout << endl; 
 }
-int takePin(){
-    int tempPin;
-    cout << "Enter your pin:" << endl;
-    cin >> tempPin;
-    if(cin.fail()){
-        cout << "Please enter numbers only." << endl;
-        return 0;
+void takePin(){
+    string tempPin;
+    bool finish = false;
+    
+    while (!finish){
+        cout << "Enter your pin [4 digit only]:" << endl;
+        cin >> tempPin;
+        if(tempPin.length() == 4){
+            if (isNumber(tempPin)){
+                finish = true;
+            }else{
+                cout << "Please enter numbers only." << endl;
+            }
+        }else{
+            cout << "Pin has to be 4 digits only!." << endl;
+        }
     }
-    if(tempPin < 1 || tempPin > 9999){
-        cout << "Pin is invalid" << endl;
-        return 0;
-    }
-    pin = tempPin;
-    cout << endl; 
-    return 1;
+    hashedPin = hashString(tempPin);
 }
 
 // Ani
 // Function to create new account
 // using local varaibles for now, only validaty check is to see if DOB.pin is in correct format. 
 void newAcc(){
-    // varaibles to hold the validity of each process
-    int valid = 1;
-
     // call standalone functions to get first and last name
     takeFName();
     takeLName();
     
     // Ask for user's dob. 
-    cout << "Please enter your birthday (mm-dd-yyyy). Enter one after another seperated by /: ";
-    cin >> dob[0];
-    // Makes sure the dob is entered in using correct format.
-    if(cin.get() == '/'){
-        cin >> dob[1];
+    bool birthdayVerified = false;
+    while (!birthdayVerified){
+        cout << "Please enter your birthday (mm/dd/yyyy). Enter one after another seperated by /: ";
+        cin >> dob[0];
+        if (cin.fail()){
+            cout << "Please enter numbers as a month." << endl;
+            cin.clear();
+            cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
+        // Makes sure the dob is entered in using correct format.
         if(cin.get() == '/'){
-            cin >> dob[2];
-        }else{
-            cout << "Please use the / to sperate the day and year and only use numbers. ";
-            valid = 0;
-        }
-    }else{
-        cout << "Please use the / to seperate the month and day and only use numbers.";
-        valid = 0;
+            cin >> dob[1];
+            if (cin.fail()){
+                cout << "Please enter numbers as a day." << endl;
+                cin.clear();
+                cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+                continue;
+            }
+            if(cin.get() == '/'){
+                cin >> dob[2];
+                if (cin.fail()){
+                    cout << "Please enter numbers as a year." << endl;
+                    cin.clear();
+                    cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+                    continue;
+                }
+                // Call function that will check if the dob is valid
+                if(isValidDOB(dob[0], dob[1], dob[2]) == false) cout << "Date of birth is invalid" << endl;
+                else birthdayVerified = true;
+            }else cout << "Please use the / to sperate the day and year and only use numbers. " << endl;
+        }else cout << "Please use the / to seperate the month and day and only use numbers." << endl;
     }
-    
-    // Call function that will check if the dob is valid
-    if(isValidDOB(dob[0], dob[1], dob[2]) == false){
-        cout << "Date of birth is invalid" << endl;
-        valid = 0;
-    }
-
-    // If user input so far is valid, then as for user address.
-    if(valid == 1){
-        takeAddress();
-    }
-
-    // If user input so far is valid, then ask for Pin number.
-    if(valid == 1){
-        if(takePin() == 0){
-            valid = 0;
-        }
-    }
-
-    // If all user input is valid, show user their info and call createOutPut file to create an account 
-    if(valid == 1){
-        cout << endl;
-        cout << "Your info is " << fname << " " << lname << " from " << address << " born on " << dob[0] << "/" << dob[1]  << "/" << dob[2] << "\n" <<endl;   
-        generateFileName();   
-    }
-    
+    takeAddress();
+    takePin();  
+    cout << "Your info is " << fname << " " << lname << " from " << address << " born on " << dob[0] << "/" << dob[1]  << "/" << dob[2] << "\n" <<endl;   
+    generateFileName();   
 }
 
 // Radek
@@ -515,12 +484,13 @@ void askForNewInfo(int info){
                 break;
             }
             if(info == 4){
-                int x = takePin();
+                takePin();
                 break;
             }
                        
         }else if(answer[0] == 'n' || answer[0] == 'n')
             break;
+        else cout << "Please enter either 'y' or n!" << endl;
     }
 
 }
@@ -569,19 +539,12 @@ void process_debit(const char * debit){
 
 }
 
-/* Dan */
-string calculateDataValidationCode(const char * debit){
-    dataValidationCode = "1";
-    entireFile = createOutputString(debit);
-    return hashString(entireFile);
-}
-
 
 /* Dan */
 bool isDebitLegit(const char * debit){
     cout << "Validating file integrity..." <<endl;
     tempDVC = dataValidationCode;
-    string currentHash = calculateDataValidationCode(debit);
+    string currentHash = calculateDataValidationCode();
     dataValidationCode = tempDVC;
 
     if(dataValidationCode.compare(currentHash) == 0){
@@ -646,7 +609,7 @@ void start_debit(const char * debit){
                             if (!tries){
                                 isLocked = true;
                                 unlockTimestamp = to_string(time(0) + 15);
-                                string newDatValidationCode = calculateDataValidationCode(debit);
+                                string newDatValidationCode = calculateDataValidationCode();
                                 dataValidationCode = newDatValidationCode;
                                 createOutputFile(debit);
                                 fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked for x time!\n");
@@ -727,7 +690,6 @@ void start(int argc, char **argv){
             newAcc();
         }else if (hflag){
             usage();
-            // Display help menu
         }else{
             fprintf (stderr, "No arguments provided. Here is the help menu:\n");
             usage();

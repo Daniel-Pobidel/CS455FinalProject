@@ -5,7 +5,53 @@
 #include <sstream>
 #include <iomanip>
 #include <float.h>
+#include <iostream>
 using namespace std;
+
+// Ani
+// function is used to check if dob is valid
+bool isValidDOB(int month, int day, int year){
+    if(year > 2021 || year < 1903){
+        cout << "Year is not valid. Enter year between 1903 and 2021 only." << endl;
+        return false;
+    }
+    if(day < 1 || day > 31){
+        cout << "Day is not valid. Enter year between 1 and 31 only." << endl;
+        return false;
+    }
+    if(month < 1 || month > 12){
+        cout << "Month is not valid. Enter year between 1 and 31 only." << endl;
+        return false;
+    }
+
+    if(month == 2){
+        if( ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0) ){
+            if(day <= 29){
+                return true;
+            }else{
+                cout << "This day does not exists in February of " << year << "." << endl;
+                return false;
+            }
+        }else{
+            if(day <= 28){
+                return true;
+            }else{
+                cout << "This day does not exists in February of " << year << "." << endl;
+                return false;
+            }
+        }
+    }
+
+    if(month == 4 || month == 6 || month == 9 || month == 11){
+        if(day <= 30){
+            return true;
+        }else{
+            cout << "This day does not exists in month " << month << "." << endl;
+            return false;
+        }
+    }
+    return true;
+}
 
 // Radek
 double doubleAdd(double n1, double n2)
