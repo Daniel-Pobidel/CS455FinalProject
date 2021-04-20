@@ -161,6 +161,7 @@ bool loadInputFile(const char *filename){
 
         //read lock timetamp if exists after pin has been read
         if(hashedPin.compare("1")!=0){
+            isLocked = true;
             getline(ss, temp, '[');
             // while(temp == ""){
             //     getline(ss, temp, '[');
@@ -581,11 +582,10 @@ void process_debit(){
 }
 
 /* Dan */
-bool isDebitLegit(const char * debit){
-    tempDVC = dataValidationCode;
+string calculateDataValidationCode(const char * debit){
     dataValidationCode = "1";
-    cout << "Validating file integrity..." <<endl;
-    createOutputFile(debit); //recreate file with constant
+    entireFile = "";
+    createOutputFile(debit); //recreate file with constant for vlaidation code
     sleep(2);
 
     FILE *f;
@@ -593,11 +593,8 @@ bool isDebitLegit(const char * debit){
     int size = 1024, pos;
     int c;
     char *buffer = (char *)malloc(size);
-
-    if(!debit || strlen(debit)<10) throw "File name too short.";
     
     f = fopen(debit,"r");
-
     if(f) {
       do { // read all lines in file
         pos = 0;
@@ -619,10 +616,19 @@ bool isDebitLegit(const char * debit){
       } while(c != EOF); 
     fclose(f);
     }
+    return hashString(entireFile);
+}
+
+
+/* Dan */
+bool isDebitLegit(const char * debit){
+    cout << "Validating file integrity..." <<endl;
+    tempDVC = dataValidationCode;
+    string currentHash = calculateDataValidationCode(debit);
     dataValidationCode = tempDVC;
     createOutputFile(debit);
 
-    if(dataValidationCode.compare(hashString(entireFile)) == 0){
+    if(dataValidationCode.compare(currentHash) == 0){
         cout << "Data validation successful\n" << endl;
         return true;
     }else{
@@ -634,7 +640,17 @@ bool isDebitLegit(const char * debit){
 
 /* TODO check is account is not locked */
 bool isUnlocked(const char * debit){
-    return true;
+    if (unlockTimestamp.empty()) return true;
+    time_t currentTime = time(0);
+    long lockedTime = stol(unlockTimestamp);
+    if (currentTime > lockedTime)
+    {
+        isLocked = false;
+        return true;
+    }else{
+        isLocked = true;
+        return false;
+    }
 }
 
 // Radek
@@ -661,8 +677,8 @@ void start_debit(char * debit){
                         showInput(true);
                         cout << endl;
                     }
-                    string hashedPin = hashString(pinEnter);
-                    if (hashedPin.compare(hashedPin) == 0){ /* TODO switch 'hashString("1234")' to actual hash value */
+                    string hashedPinInput = hashString(pinEnter);
+                    if (hashedPinInput.compare(hashedPin) == 0){ /* TODO switch 'hashString("1234")' to actual hash value */
                         cout << "Pin sucessfully Entered!\n" << endl;
                         success = true;
                         process_debit();
@@ -671,6 +687,11 @@ void start_debit(char * debit){
                         cout << "Pin does not match! Please try again. " << tries << " remaining before locked down." << endl;
                         if (!tries){
                             /* TODO add timestamp to file to lock the acccount. (Like 20 secs or so) */
+                            isLocked = true;
+                            unlockTimestamp = to_string(time(0) + 15);
+                            string newDatValidationCode = calculateDataValidationCode(debit);
+                            dataValidationCode = newDatValidationCode;
+                            createOutputFile(debit);
                             fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked for x time!\n");
                             exit(1);                            
                         }
