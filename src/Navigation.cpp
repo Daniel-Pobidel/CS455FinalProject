@@ -2,6 +2,7 @@
 #include <cctype>
 #include <cstddef>
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <cstdio>
 #include <iomanip>
@@ -18,7 +19,7 @@ using namespace std;
 
 #include "./helpers.cpp"
 
-void process_debit();
+void process_debit(const char * debit);
 
 //temp variables hard coded for testing, these will be populated by user input
 string fname = "Dan", lname="Pobidel", address = "400 Road st, New britain, CT, 06051", account;
@@ -59,7 +60,7 @@ bool loadInputFile(const char *filename){
     int c;
     char *buffer = (char *)malloc(size);
 
-    if(!filename || strlen(filename)<10) throw "File name too short.";
+    if(strlen(filename)<10) throw "File name too short.";
     
     f = fopen(filename,"r");
 
@@ -162,6 +163,7 @@ bool loadInputFile(const char *filename){
 
         //read lock timetamp if exists after pin has been read
         if(hashedPin.compare("1")!=0){
+            cout << "READ TUNESTANO" << endl;
             isLocked = true;
             getline(ss, temp, '[');
             // while(temp == ""){
@@ -206,7 +208,7 @@ bool loadInputFile(const char *filename){
 }
 
 //Dan
-void createOutputFile(const char *filename){
+string createOutputString(const char *filename){
     ostringstream temp;
     temp<<setprecision(3) << balance;
     string header = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Bank of Piggy~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
@@ -234,13 +236,16 @@ void createOutputFile(const char *filename){
         transactionsHistory += ( tranDates[i] + "]\n\n");
     }
     
-    string fileTemplate = header + accountInfo + transHeader + transactionsHistory + footer;
-
+    return header + accountInfo + transHeader + transactionsHistory + footer;
+}
+void createOutputFile(const char *filename){
+    string fileTemplate = createOutputString(filename);
     FILE *f;
     f=fopen(filename, "w");
     fputs(fileTemplate.c_str(), f);
     fclose(f);
 }
+
 
 //Dan
 //This function is used for the creation of a new account file
@@ -433,7 +438,7 @@ void withdraw(const char *filename){
         
         cout << "New balance: $" << fixed << setprecision(2) << balance << endl;
         cout << "Returning to main menu...\n" <<endl;
-        process_debit();
+        process_debit(filename);
       }
     } else {
       // not a valid number
@@ -477,7 +482,7 @@ void deposit(const char *filename ){
         
         cout << "New balance: $" << fixed << setprecision(2) << balance << endl;
         cout << "Returning to main menu...\n" <<endl;
-        process_debit();
+        process_debit(filename);
       }
     } else {
       // not a valid number
@@ -553,7 +558,7 @@ void changeSettings(){
 }
 
 // Radek
-void process_debit(){
+void process_debit(const char * debit){
     /* TODO Show basic info */
     while(1){
         system("echo Type 's' to show account information");
@@ -567,14 +572,14 @@ void process_debit(){
         else if (input[0] == 's' || input[0] == 'S')
             showAccount();
         else if (input[0] == 'w' || input[0] == 'W')
-            withdraw(accFileName.c_str());
+            withdraw(debit);
         else if (input[0] == 'd' || input[0] == 'D')
-            deposit(accFileName.c_str());
+            deposit(debit);
         else if (input[0] == 'a' || input[0] == 'A')
             changeSettings();
         else if (input[0] == 'q' || input[0] == 'Q'){
             /* TODO Gracefully exit the program */
-            createOutputFile(accFileName.c_str());
+            createOutputFile(debit);
             cout << "\nLogging off..." << endl;
             exit(0);
         }else cout << "Command not found!" << endl;
@@ -585,38 +590,7 @@ void process_debit(){
 /* Dan */
 string calculateDataValidationCode(const char * debit){
     dataValidationCode = "1";
-    entireFile = "";
-    createOutputFile(debit); //recreate file with constant for vlaidation code
-    sleep(2);
-
-    FILE *f;
-    int currLine = 1;
-    int size = 1024, pos;
-    int c;
-    char *buffer = (char *)malloc(size);
-    
-    f = fopen(debit,"r");
-    if(f) {
-      do { // read all lines in file
-        pos = 0;
-        do{ // read one line
-          c = fgetc(f);
-          if(c != EOF) buffer[pos++] = (char)c;
-          if(pos >= size - 1) { // increase buffer length - leave room for 0
-            size *=2;
-            buffer = (char*)realloc(buffer, size);
-          }
-        }while(c != EOF && c != '\n');
-
-      buffer[pos] = 0;
-      // line is now in buffer
-      istringstream ss(buffer);
-      entireFile += buffer;
-        
-      currLine++;
-      } while(c != EOF); 
-    fclose(f);
-    }
+    entireFile = createOutputString(debit);
     return hashString(entireFile);
 }
 
@@ -627,7 +601,6 @@ bool isDebitLegit(const char * debit){
     tempDVC = dataValidationCode;
     string currentHash = calculateDataValidationCode(debit);
     dataValidationCode = tempDVC;
-    createOutputFile(debit);
 
     if(dataValidationCode.compare(currentHash) == 0){
         cout << "Data validation successful\n" << endl;
@@ -656,59 +629,64 @@ bool isUnlocked(const char * debit){
 
 // Radek
 void start_debit(const char * debit){
-    if (loadInputFile(debit)){
-        if (isDebitLegit(debit)){
-            if (isUnlocked(debit)){
-                int tries = 3;
-                string pinEnter;
-                bool success = false;
-                while (tries > 0 && !success ){
-                    cout << "Enter Debit Card's 4 digitPin [0-9 values only]:";
-                    showInput(false);
-                    cin >> pinEnter;
-                    showInput(true);
-                    cout << endl;
-                    while(!isNumber(pinEnter) || pinEnter.length() != 4)
-                    {
-                        cout << "Incorrect Input. Please Enter Debit Card's 4 digitPin [0-9 values only]:" << endl;
-                        cin.clear();
-                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    try{
+        if (loadInputFile(debit) ){
+            cout << "File loaded!" << endl;
+            if (isDebitLegit(debit)){
+                if (isUnlocked(debit)){
+                    int tries = 3;
+                    string pinEnter;
+                    bool success = false;
+                    while (tries > 0 && !success ){
+                        cout << "Enter Debit Card's 4 digitPin [0-9 values only]:";
                         showInput(false);
                         cin >> pinEnter;
                         showInput(true);
                         cout << endl;
-                    }
-                    string hashedPinInput = hashString(pinEnter);
-                    if (hashedPinInput.compare(hashedPin) == 0){ 
-                        cout << "Pin sucessfully Entered!\n" << endl;
-                        success = true;
-                        process_debit();
-                    }else{
-                        tries--;
-                        cout << "Pin does not match! Please try again. " << tries << " remaining before locked down." << endl;
-                        if (!tries){
-                            isLocked = true;
-                            unlockTimestamp = to_string(time(0) + 15);
-                            string newDatValidationCode = calculateDataValidationCode(debit);
-                            dataValidationCode = newDatValidationCode;
-                            createOutputFile(debit);
-                            fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked for x time!\n");
-                            exit(1);                            
+                        while(!isNumber(pinEnter) || pinEnter.length() != 4)
+                        {
+                            cout << "Incorrect Input. Please Enter Debit Card's 4 digitPin [0-9 values only]:" << endl;
+                            cin.clear();
+                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                            showInput(false);
+                            cin >> pinEnter;
+                            showInput(true);
+                            cout << endl;
+                        }
+                        string hashedPinInput = hashString(pinEnter);
+                        if (hashedPinInput.compare(hashedPin) == 0){ 
+                            cout << "Pin sucessfully Entered!\n" << endl;
+                            success = true;
+                            process_debit(debit);
+                        }else{
+                            tries--;
+                            cout << "Pin does not match! Please try again. " << tries << " remaining before locked down." << endl;
+                            if (!tries){
+                                isLocked = true;
+                                unlockTimestamp = to_string(time(0) + 15);
+                                string newDatValidationCode = calculateDataValidationCode(debit);
+                                dataValidationCode = newDatValidationCode;
+                                createOutputFile(debit);
+                                fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked for x time!\n");
+                                exit(1);                            
+                            }
                         }
                     }
+                }else{
+                    fprintf (stderr, "Your account is locked. You cannot open it until x time.\n");
+                    exit(1);
                 }
             }else{
-                fprintf (stderr, "Your account is locked. You cannot open it until x time.\n");
+                fprintf (stderr, "Please contact Piggy Bank Customer support.\n\n");
                 exit(1);
             }
         }else{
-            fprintf (stderr, "Please contact Piggy Bank Customer support.\n\n");
+            fprintf (stderr, "Card not found! Here is the help menu:\n");
+            usage();
             exit(1);
         }
-    }else{
-        fprintf (stderr, "Card not found! Here is the help menu:\n");
-        usage();
-        exit(1);
+    }catch (const char *msg){
+        cerr << msg << endl;
     }
 }
 
