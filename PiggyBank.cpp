@@ -154,7 +154,6 @@ bool loadInputFile(const char *filename){
             while(temp == "" && hashedPin.compare("1")==0){
                 getline(ss, temp, '~');
                 if(temp.compare("") != 0){
-                    cout << "read pin" << endl;
                     hashedPin = temp;
                 }
             }
@@ -574,7 +573,7 @@ void process_debit(){
         else if (input[0] == 'q' || input[0] == 'Q'){
             /* TODO Gracefully exit the program */
             createOutputFile(accFileName.c_str());
-            cout << "Logging off" << endl;
+            cout << "\nLogging off..." << endl;
             exit(0);
         }else cout << "Command not found!" << endl;
     }
@@ -624,7 +623,7 @@ bool isDebitLegit(const char * debit){
     createOutputFile(debit);
 
     if(dataValidationCode.compare(hashString(entireFile)) == 0){
-        cout << "Data validation successful" << endl;
+        cout << "Data validation successful\n" << endl;
         return true;
     }else{
         cout << "\nFailure to verify file integrity, the Debit Card looks broken and cannot be used." << endl;
@@ -664,7 +663,7 @@ void start_debit(char * debit){
                     }
                     string hashedPin = hashString(pinEnter);
                     if (hashedPin.compare(hashedPin) == 0){ /* TODO switch 'hashString("1234")' to actual hash value */
-                        cout << "Pin sucessfully Entered!" << endl;
+                        cout << "Pin sucessfully Entered!\n" << endl;
                         success = true;
                         process_debit();
                     }else{
