@@ -4,7 +4,16 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <float.h>
 using namespace std;
+
+// Radek
+double doubleAdd(double n1, double n2)
+{
+    long double ld = n1 + n2;
+    if (ld > DBL_MAX) return -1;
+    else return ld;
+}
 
 // Radek
 bool isNumber(const string& str)
