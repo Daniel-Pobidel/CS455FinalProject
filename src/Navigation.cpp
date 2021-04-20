@@ -399,8 +399,16 @@ void usage(){
     cout << "-n            User is directed to create a new file" << endl;
     cout << "-h            Display Help" << endl;
 }
-/* TODO */
-void showAccount(){cout << "showAccount" << endl;}
+
+// Ani
+// Display the user's info excluding transaction
+void showAccount(){
+    cout << "Showing account information for: " << account << endl;
+    cout << "Name: " << lname << "," << fname << endl;
+    cout << "Date of Birth: " << dob[0] << "/" << dob[1] << "/" << dob[2] << endl;   
+    cout << "Address: " << address << endl;
+    cout << "Account Balance: " << balance << endl;
+}
 
 //Dan
 void withdraw(const char *filename){
