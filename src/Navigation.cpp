@@ -261,18 +261,43 @@ void generateFileName(){
     cout << "Your online piggy bank card is: " << filename << endl;
 }
 
-// Ani
-// User input functions:
+// Ani, user input for first name
 void takeFName(){
-    cout << "Please enter in your first name: ";
-    cin >> fname;
+    bool valid;
+    do{
+        cout << "Please enter in your first name: ";
+        cin >> fname;
+        valid = true;
+        for(int i = 0; i < sizeof(fname); i++){
+            if(isalpha(fname[i]) == false){
+                valid = false;
+                cout << "Invalid input. Please only use letters for name." << endl;
+                break;
+            }
+        }
+    }while(valid == false);
+    
     // cout << endl; 
 }
+// Ani, user input for last name
 void takeLName(){
-    cout << "Please enter in your last name: ";
-    cin >> lname;
-    // cout << endl; 
+
+    bool valid;
+    do{
+        cout << "Please enter in your last name: ";
+        cin >> lname;
+        valid = true;
+        for(int i = 0; i < sizeof(fname); i++){
+            if(isalpha(fname[i]) == false){
+                valid = false;
+                cout << "Invalid input. Please only user letters for name." << endl;
+                break;
+            }
+        }
+    }while(valid == false);
+ 
 }
+// Ani, user input for address
 void takeAddress(){
     cout << "Please enter in your address:";
     cin.ignore();        
@@ -280,6 +305,7 @@ void takeAddress(){
     address += "\n";
     cout << endl; 
 }
+// Ani, user input for PIN
 void takePin(){
     string tempPin;
     bool finish = false;
