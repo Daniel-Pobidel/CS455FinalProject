@@ -23,19 +23,15 @@ const string DEBIT_FOLDER = "src/DebitCards/";
 
 void process_debit(const char * debit);
 
-//temp variables hard coded for testing, these will be populated by user input
-string fname = "Dan", lname="Pobidel", address = "400 Road st, New britain, CT, 06051", account;
-int dob[3]= {07,10,1999};
-int pin = 0000;
-double balance = 0.00;
+//these will be populated by users input / reading file
+string fname, lname, address, account, dataValidationCode, tempDVC, entireFile, hashedFile, unlockTimestamp,accFileName,hashedPin="1";
+int dob[3];
+int pin;
+double balance;
 bool isLocked = false;
-string unlockTimestamp;
-string hashedPin="1";
-string dataValidationCode, tempDVC;
-string entireFile, hashedFile;
+
 vector <double> transactions;
 vector <string> tranDates;
-string accFileName;
 
 
 //Primary author: Dan
@@ -213,7 +209,7 @@ bool loadInputFile(const char *filename){
 //Dan
 string createOutputString(){
     ostringstream temp;
-    temp<<setprecision(3) << balance;
+    temp << fixed <<setprecision(2) << balance;
     string header = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Bank of Piggy~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
     string accountInfo = fname + " " + lname + "\n" + to_string(dob[0])+ "/" + to_string(dob[1])+ "/" + to_string(dob[2]) + "\n" + address + "Account #: " + account + 
                         "\nData Validation code: " + dataValidationCode + "\n\n";
@@ -227,13 +223,19 @@ string createOutputString(){
     
     for(int i=0; i<transactions.size();i++){
         if(transactions.at(i) >= 0){
+            temp.str("");
+            temp.clear();
+            temp << fixed <<setprecision(2) << transactions.at(i);
             transactionsHistory += "+$";
-            transactionsHistory += (to_string(transactions.at(i)));
+            transactionsHistory += temp.str();
         }
         else{
-            double temp = transactions.at(i)*-1;
+            double negate = transactions.at(i)*-1;
+            temp.str("");
+            temp.clear();
+            temp << fixed <<setprecision(2) << negate;
             transactionsHistory += "-$";
-            transactionsHistory += to_string(temp);            
+            transactionsHistory += temp.str();            
         }
         transactionsHistory += "                                                                     [";
         transactionsHistory += ( tranDates[i] + "]\n\n");
@@ -311,7 +313,7 @@ void takeLName(){
         cin >> lname;
         valid = true;
         for(int i = 0; i < lname.size(); i++){
-            if(isalpha(fname[i]) == false){
+            if(isalpha(lname[i]) == false){
                 valid = false;
                 cout << "Invalid input. Please only user letters for name." << endl;
                 break;
