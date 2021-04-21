@@ -57,7 +57,7 @@ bool isValidDOB(int month, int day, int year){
 double doubleAdd(double n1, double n2)
 {
     long double ld = n1 + n2;
-    if (ld > DBL_MAX) return -1;
+    if (ld > DBL_MAX) throw "Max Size Reached";
     else return ld;
 }
 
