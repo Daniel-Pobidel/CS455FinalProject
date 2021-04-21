@@ -23,19 +23,15 @@ const string DEBIT_FOLDER = "src/DebitCards/";
 
 void process_debit(const char * debit);
 
-//temp variables hard coded for testing, these will be populated by user input
-string fname = "Dan", lname="Pobidel", address = "400 Road st, New britain, CT, 06051", account;
-int dob[3]= {07,10,1999};
-int pin = 0000;
-double balance = 0.00;
+//these will be populated by users input / reading file
+string fname, lname, address, account, dataValidationCode, tempDVC, entireFile, hashedFile, unlockTimestamp,accFileName,hashedPin="1";
+int dob[3];
+int pin;
+double balance;
 bool isLocked = false;
-string unlockTimestamp;
-string hashedPin="1";
-string dataValidationCode, tempDVC;
-string entireFile, hashedFile;
+
 vector <double> transactions;
 vector <string> tranDates;
-string accFileName;
 
 
 //Primary author: Dan
