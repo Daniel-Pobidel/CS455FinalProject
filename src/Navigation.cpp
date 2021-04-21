@@ -213,7 +213,7 @@ bool loadInputFile(const char *filename){
 //Dan
 string createOutputString(){
     ostringstream temp;
-    temp<<setprecision(3) << balance;
+    temp << fixed <<setprecision(2) << balance;
     string header = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Bank of Piggy~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
     string accountInfo = fname + " " + lname + "\n" + to_string(dob[0])+ "/" + to_string(dob[1])+ "/" + to_string(dob[2]) + "\n" + address + "Account #: " + account + 
                         "\nData Validation code: " + dataValidationCode + "\n\n";
@@ -227,13 +227,19 @@ string createOutputString(){
     
     for(int i=0; i<transactions.size();i++){
         if(transactions.at(i) >= 0){
+            temp.str("");
+            temp.clear();
+            temp << fixed <<setprecision(2) << transactions.at(i);
             transactionsHistory += "+$";
-            transactionsHistory += (to_string(transactions.at(i)));
+            transactionsHistory += temp.str();
         }
         else{
-            double temp = transactions.at(i)*-1;
+            double negate = transactions.at(i)*-1;
+            temp.str("");
+            temp.clear();
+            temp << fixed <<setprecision(2) << negate;
             transactionsHistory += "-$";
-            transactionsHistory += to_string(temp);            
+            transactionsHistory += temp.str();            
         }
         transactionsHistory += "                                                                     [";
         transactionsHistory += ( tranDates[i] + "]\n\n");
@@ -311,7 +317,7 @@ void takeLName(){
         cin >> lname;
         valid = true;
         for(int i = 0; i < lname.size(); i++){
-            if(isalpha(fname[i]) == false){
+            if(isalpha(lname[i]) == false){
                 valid = false;
                 cout << "Invalid input. Please only user letters for name." << endl;
                 break;
