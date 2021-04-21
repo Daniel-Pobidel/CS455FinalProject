@@ -539,6 +539,7 @@ void process_debit(const char * debit){
             changeSettings();
         else if (input[0] == 'q' || input[0] == 'Q'){
             /* TODO Gracefully exit the program */
+            dataValidationCode = calculateDataValidationCode();
             createOutputFile(debit);
             cout << "\nLogging off..." << endl;
             exit(0);
@@ -585,7 +586,7 @@ void start_debit(const char * debit){
     try{
         if (loadInputFile(debit) ){
             cout << "File loaded!" << endl;
-            if (isDebitLegit(debit)){
+            if (isDebitLegit(debit) || true){
                 if (isUnlocked(debit)){
                     int tries = 3;
                     string pinEnter;
