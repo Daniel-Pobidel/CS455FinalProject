@@ -1,3 +1,4 @@
+#include <cctype>
 #include <termios.h>
 #include <unistd.h>
 #include <openssl/sha.h>
@@ -51,6 +52,67 @@ bool isValidDOB(int month, int day, int year){
         }
     }
     return true;
+}
+
+// Radek
+bool isMoneyFormat(const string& str)
+{
+    int len = str.size();
+    bool dot = false;
+    bool hasDigit = false;
+    int count = 0;
+    if (len == 0) return false;
+    int i = 0;
+    if (str[0] == '$') i++;
+    for (i=i; i<len; i++){
+        if ((str[i] == '.')){
+            dot = true;
+            continue;
+        } 
+        if (dot){
+            if (!isdigit(str[i])) return false;
+            if (count == 2) return false;
+            hasDigit = true;
+            count++;
+        }else{
+            if (!isdigit(str[i])) return false;
+            hasDigit = true;
+        }
+    }
+    return hasDigit;
+}
+
+// Radek
+double moneyStringToDouble(const string& str)
+{
+    string money;
+    int len = str.size();
+    bool hasDigit = false;
+    bool dot = false;
+    int count = 0;
+    if (len == 0) throw "Input is not in money format!";
+    int i = 0;
+    if (str[0] == '$') i++;
+    for (i=i; i<len; i++){
+        if ((str[i] == '.')){
+            dot = true;
+            money += str[i];
+            continue;
+        } 
+        if (dot){
+            if (!isdigit(str[i])) throw "Input is not in money format!";
+            if (count == 2) throw "Input is not in money format!";
+            hasDigit = true;
+            money += str[i];
+            count++;
+        }else{
+            if (!isdigit(str[i])) throw "Input is not in money format!";
+            money += str[i];
+            hasDigit = true;
+        }
+    }
+    if (hasDigit) return (stod(money));
+    else throw "Input is not in money format!";
 }
 
 // Radek

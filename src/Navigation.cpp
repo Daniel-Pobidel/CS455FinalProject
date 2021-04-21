@@ -417,24 +417,33 @@ void showAccount(){
 
 //Dan
 void withdraw(){
+    string withdrawAmountInput;
     double withdrawlAmount;
     cout << "Current balance: $" <<  fixed << setprecision(2) << balance << endl;
-    cout << "How much would you like to withdrawl? ";
-    if (cin >> withdrawlAmount) {
-      // valid number
-      if(withdrawlAmount > balance){
+    cout << "How much would you like to withdraw? ";
+    // valid number
+    cin >> withdrawAmountInput;
+    try {
+        withdrawlAmount = moneyStringToDouble(withdrawAmountInput);
+    } catch (const char *msg){
+        cerr << msg << endl;
+        withdraw();
+        return;
+    }
+
+    if(withdrawlAmount > balance){
         cout << "You dont have that much money!\n" << endl;
         withdraw();
-      }
-      else if(withdrawlAmount < 0){
+    }
+    else if(withdrawlAmount < 0){
         cout << "You can't withdrawl negative money!\n" << endl;
         withdraw();
-      }
-      else{
+    }
+    else{
         time_t t = time(0);   // get time now
         tm* currTime = std::localtime(&t);
         string timestamp = to_string((currTime->tm_mon + 1)) + "/" + to_string(currTime->tm_mday) + "/"+ to_string((currTime->tm_year + 1900))+" " 
-                      + to_string(currTime->tm_hour-4) + ":" + to_string(currTime->tm_min);
+                    + to_string(currTime->tm_hour-4) + ":" + to_string(currTime->tm_min);
         tranDates.push_back(timestamp);
 
         balance -= withdrawlAmount;
@@ -446,39 +455,41 @@ void withdraw(){
         
         cout << "New balance: $" << fixed << setprecision(2) << balance << endl;
         cout << "Returning to main menu...\n" <<endl;
-      }
-    } else {
-      // not a valid number
-      cout << "Invalid Input! Please input a numerical value." << endl;
-      cin.clear();
-      withdraw();
-      
     }
 }
 
 /* TODO */
 void deposit(){
+    string depositAmountInput;
     double depositAmount;
     cout << "Current balance: $" <<  fixed << setprecision(2) << balance << endl;
     cout << "How much would you like to deposit? ";
-    if (cin >> depositAmount) {
-      // valid number
-      if(depositAmount > 1000){
+    // valid number
+    cin >> depositAmountInput;
+    try {
+        depositAmount = moneyStringToDouble(depositAmountInput);
+    } catch (const char *msg){
+        cerr << msg << endl;
+        deposit();
+        return;
+    }
+        
+    if(depositAmount > 1000){
         cout << "You may only deposit up to $1000 at a time\n" << endl;
         deposit();
-      }
-      else if(depositAmount < 0){
+    }
+    else if(depositAmount < 0){
         cout << "You can't deposit negative money!\n" << endl;
         deposit();
-      }
-      else if(depositAmount == 0){
-          cout << "You deposited nothing!\n" << endl;
-      }
-      else{
+    }
+    else if(depositAmount == 0){
+        cout << "You deposited nothing!\n" << endl;
+    }
+    else{
         time_t t = time(0);   // get time now
         tm* currTime = std::localtime(&t);
         string timestamp = to_string((currTime->tm_mon + 1)) + "/" + to_string(currTime->tm_mday) + "/"+ to_string((currTime->tm_year + 1900))+" " 
-                      + to_string(currTime->tm_hour-4) + ":" + to_string(currTime->tm_min);
+                    + to_string(currTime->tm_hour-4) + ":" + to_string(currTime->tm_min);
         tranDates.push_back(timestamp);
 
         balance += depositAmount;
@@ -489,14 +500,7 @@ void deposit(){
         
         cout << "New balance: $" << fixed << setprecision(2) << balance << endl;
         cout << "Returning to main menu...\n" <<endl;
-      }
-    } else {
-      // not a valid number
-      cout << "Invalid Input! Please input a numerical value." << endl;
-      cin.clear();
-      deposit();
     }
-
 }
 
 // condensed function that will rotate through the types of user info that can be changed
@@ -686,8 +690,6 @@ void start_debit(const char * debit){
                 exit(1);
             }
         }else{
-            fprintf (stderr, "Card not found! Here is the help menu:\n");
-            usage();
             exit(1);
         }
     }catch (const char *msg){
