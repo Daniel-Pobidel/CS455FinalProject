@@ -38,19 +38,34 @@ vector <string> tranDates;
 string accFileName;
 
 
-//Dan
-//temp func, could be used for verifying balance == transaction total, may not be used
-int calcBalance(){
-    balance = 0;
+//Primary author: Dan
+//used for verifying balance by adding together every transaction
+//returns sum of all transactions
+//vulnerability #3 resolution - checking amount of space available before 
+//                            - adding to preventing double overflow
+double calcBalance(){
+    double tBalance = 0.0;
+
     for(double tran :transactions){
-        balance += tran;
+        double spaceAvailable = DBL_MAX - tBalance;
+        if(tran > spaceAvailable){
+            throw "Error calculating balance, transaction total excedes storage limits.";
+        }
+        else{
+            tBalance += tran;
+        }
     }
-    return balance;
+    return tBalance;
 }
 
 
 //Dan
-//Loads data from given input file into global variables
+//description:Loads data from given input file into global variables
+//parameter: filename to be opened/read
+//outputs: boolean true if successful
+//vulnerabilities addressed:
+//#5 (catching exceptions): Throw exception if file does not follow expected format
+//#7 (Failure to Handle Errors Correctly): Exiting gracefully upon error
 bool loadInputFile(const char *filename){
 
     FILE *f;
@@ -64,133 +79,134 @@ bool loadInputFile(const char *filename){
 
     if(strlen(filename)<(10+DEBIT_FOLDER.size())) throw "Error! File name too short.";
     
-    f = fopen(filename,"r");
-
-    if(f) {
-      string temp;
-      double tempDouble;
-      do { // read all lines in file
-        pos = 0;
-        do{ // read one line
-          c = fgetc(f);
-          if(c != EOF) buffer[pos++] = (char)c;
-          if(pos >= size - 1) { // increase buffer length - leave room for 0
-            size *=2;
-            buffer = (char*)realloc(buffer, size);
-          }
-        }while(c != EOF && c != '\n');
-
-        buffer[pos] = 0;
-        // line is now in buffer
-        istringstream ss(buffer);
-
-        //read first and last name
-        if(currLine == 2){
-            ss >> fname;
-            ss >> lname;
-        }
-
-        //read date of birth
-        if(currLine == 3){
-            char delim;
-            ss >> dob[0] >> delim;
-            ss >> dob[1] >> delim;
-            ss >> dob[2] >> delim;
-        }
-
-        //read address
-        if(currLine == 4){
-            address = buffer;
-        }
-
-        //read Account #
-        if(currLine == 5 ){
-            getline(ss, temp, ':');
-            getline(ss, temp, ' ');
-            getline(ss,account);
-
-        }
-
-        //read data validation code
-        if(currLine == 6 ){
-            getline(ss, temp, ':');
-            getline(ss, temp, ' ');
-            getline(ss,dataValidationCode);
-        }
-
-        if(currLine > 9 && readTran == false){
-            //read transactions
-            getline(ss, temp, '$'); //sign (+/-)
-
-            if(temp.compare("+") == 0){
-                getline(ss, temp, ' '); //amount (dollars)
-                sscanf(temp.c_str(), "%lf", &tempDouble);
-                transactions.push_back(tempDouble);
-                //read timestamps
-                getline(ss, temp, '[');
-                getline(ss, temp, ']');
-                tranDates.push_back(temp); 
-            }
-            else if(temp.compare("-") == 0){
-                getline(ss, temp, ' '); //amount (dollars)
-                sscanf(temp.c_str(), "%lf", &tempDouble);
-                tempDouble *= -1; 
-                transactions.push_back(tempDouble);
-                //read timestamps
-                getline(ss, temp, '[');
-                getline(ss, temp, ']');
-                tranDates.push_back(temp); 
-            }  
-
-            //read balance
-            if(temp.compare("Balance: ") == 0) {
-                getline(ss, temp, '$');
-                getline(ss, temp);
-                sscanf(temp.c_str(), "%lf", &balance);
-
-                readTran = true;
-            };
-        }
-
-        if(readTran && hashedPin.compare("1")==0){
-            getline(ss, temp, '~');
-            //iterate through each '~' character until hashed pin is read
-            while(temp == "" && hashedPin.compare("1")==0){
-                getline(ss, temp, '~');
-                if(temp.compare("") != 0){
-                    hashedPin = temp;
+    try{
+        f = fopen(filename,"r");
+        if(f) {
+            string temp;
+            double tempDouble;
+            do { // read all lines in file
+                pos = 0;
+                do{ // read one line
+                c = fgetc(f);
+                if(c != EOF) buffer[pos++] = (char)c;
+                if(pos >= size - 1) { // increase buffer length - leave room for 0
+                    size *=2;
+                    buffer = (char*)realloc(buffer, size);
                 }
-            }
+                }while(c != EOF && c != '\n');
+
+                buffer[pos] = 0;
+                // line is now in buffer
+                istringstream ss(buffer);
+
+                //read first and last name
+                if(currLine == 2){
+                    ss >> fname;
+                    ss >> lname;
+                }
+
+                //read date of birth
+                if(currLine == 3){
+                    char delim;
+                    ss >> dob[0] >> delim;
+                    ss >> dob[1] >> delim;
+                    ss >> dob[2] >> delim;
+                }
+
+                //read address
+                if(currLine == 4){
+                    address = buffer;
+                }
+
+                //read Account #
+                if(currLine == 5 ){
+                    getline(ss, temp, ':');
+                    getline(ss, temp, ' ');
+                    getline(ss,account);
+
+                }
+
+                //read data validation code
+                if(currLine == 6 ){
+                    getline(ss, temp, ':');
+                    getline(ss, temp, ' ');
+                    getline(ss,dataValidationCode);
+                }
+
+                if(currLine > 9 && readTran == false){
+                    //read transactions
+                    getline(ss, temp, '$'); //sign (+/-)
+
+                    if(temp.compare("+") == 0){
+                        getline(ss, temp, ' '); //amount (dollars)
+                        sscanf(temp.c_str(), "%lf", &tempDouble);
+                        transactions.push_back(tempDouble);
+                        //read timestamps
+                        getline(ss, temp, '[');
+                        getline(ss, temp, ']');
+                        tranDates.push_back(temp); 
+                    }
+                    else if(temp.compare("-") == 0){
+                        getline(ss, temp, ' '); //amount (dollars)
+                        sscanf(temp.c_str(), "%lf", &tempDouble);
+                        tempDouble *= -1; 
+                        transactions.push_back(tempDouble);
+                        //read timestamps
+                        getline(ss, temp, '[');
+                        getline(ss, temp, ']');
+                        tranDates.push_back(temp); 
+                    }  
+
+                    //read balance
+                    if(temp.compare("Balance: ") == 0) {
+                        getline(ss, temp, '$');
+                        getline(ss, temp);
+                        sscanf(temp.c_str(), "%lf", &balance);
+
+                        readTran = true;
+                    };
+                }
+
+                if(readTran && hashedPin.compare("1")==0){
+                    getline(ss, temp, '~');
+                    //iterate through each '~' character until hashed pin is read
+                    while(temp == "" && hashedPin.compare("1")==0){
+                        getline(ss, temp, '~');
+                        if(temp.compare("") != 0){
+                            hashedPin = temp;
+                        }
+                    }
+                }
+
+                //read lock timetamp if exists after pin has been read
+                if(hashedPin.compare("1")!=0){
+                    getline(ss, temp, '[');
+                    if(temp.compare("!!! ACCOUNT LOCKED !!! ACCOUNT WILL UNLOCK AT ")==0)
+                    {
+                        getline(ss, unlockTimestamp, ']');
+                    }
+                    if (!unlockTimestamp.empty()){
+                        cout << "READ TUNESTANO" << endl;
+                        isLocked = true;
+                    } 
+                }
+                currLine++;
+
+            } while(c != EOF); 
+
+            fclose(f); 
+            cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
+            return true;    
         }
-
-        //read lock timetamp if exists after pin has been read
-        if(hashedPin.compare("1")!=0){
-            getline(ss, temp, '[');
-            // while(temp == ""){
-            //     getline(ss, temp, '[');
-            if(temp.compare("!!! ACCOUNT LOCKED !!! ACCOUNT WILL UNLOCK AT ")==0)
-            {
-                getline(ss, unlockTimestamp, ']');
-            }
-            if (!unlockTimestamp.empty()){
-                cout << "READ TUNESTANO" << endl;
-                isLocked = true;
-            } 
-
-            //}
-        }
-
-        
-        currLine++;
-
-      } while(c != EOF); 
-      fclose(f); 
-      cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
-      return true;    
+        else{
+            throw "Error! Failed to open, specified file not found.";
+        }   
     }
-    else{
-        throw "Error! Failed to open, specified file not found.";
+    catch(...){
+        cout << "Failure to read input file" << endl;
+        return false;
     }
+      
 }
 
 //Dan

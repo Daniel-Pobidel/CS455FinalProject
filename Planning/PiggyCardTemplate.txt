@@ -25,3 +25,5 @@ Transactions
 Balance: $2.00
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[verification code]~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+LOCKED[Timestamp]

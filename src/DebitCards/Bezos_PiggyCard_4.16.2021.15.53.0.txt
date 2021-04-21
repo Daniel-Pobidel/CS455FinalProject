@@ -3,7 +3,7 @@ Trump Bezos
 1/22/1933
 Amazon rainforest
 Account #: 4.16.2021.15.53.0
-Data Validation code: 06bda6c82314e9bda8a57c586ad139f5c7c62fa8877e9820f7715c41be91b2f6
+Data Validation code: 3315a7568aff93ab9196fa2cb61f75079972869cbccd9ac7309ad31d868b2102
 
 Transactions 
 ~~~~~~~~~~~~~
@@ -28,7 +28,9 @@ Transactions
 
 +$1.000000                                                                     [4/20/2021 16:24]
 
++$4.000000                                                                     [4/21/2021 17:2]
+
 ~~~~~~
-Balance: $6
+Balance: $10
 
 ~~~~~~~~~~~~~~~~~03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4~~~~~~~~~~~~~~~~~
