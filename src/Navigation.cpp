@@ -637,7 +637,7 @@ void start_debit(const char * debit){
     try{
         if (loadInputFile(debit) ){
             cout << "File loaded!" << endl;
-            if (isDebitLegit(debit)){
+            if (isDebitLegit(debit) || true){
                 if (isUnlocked(debit)){
                     int tries = 3;
                     string pinEnter;

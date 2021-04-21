@@ -81,8 +81,9 @@ void showInput(bool showEcho)
 }
 
 // Radek
-string hashString(const string str)
+string hashString(string str)
 {
+    str += "LIV6HKH3VKRD5"; // salt
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256_CTX sha256;
     SHA256_Init(&sha256);
