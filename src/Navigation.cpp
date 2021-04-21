@@ -29,16 +29,15 @@ int dob[3];
 int pin;
 double balance;
 bool isLocked = false;
-
 vector <double> transactions;
 vector <string> tranDates;
 
 
 //Primary author: Dan
-//used for verifying balance by adding together every transaction
-//returns sum of all transactions
-//vulnerability #3 resolution - checking amount of space available before 
-//                            - adding to preventing double overflow
+//Description: used for verifying balance by adding together every transaction
+//Output: returns sum of all transactions
+//Vulnerability Addressed: #3 Double Overflows
+//resolution - checking amount of space available before adding to preventing double overflow
 double calcBalance(){
     double tBalance = 0.0;
 
@@ -55,11 +54,11 @@ double calcBalance(){
 }
 
 
-//Dan
-//description:Loads data from given input file into global variables
-//parameter: filename to be opened/read
-//outputs: boolean true if successful
-//vulnerabilities addressed:
+//Primary author: Dan
+//Description:Loads data from given input file into global variables
+//Parameter: filename to be opened/read
+//Output: boolean true if successful
+//Vulnerabilities addressed:
 //#5 (catching exceptions): Throw exception if file does not follow expected format
 //#7 (Failure to Handle Errors Correctly): Exiting gracefully upon error
 bool loadInputFile(const char *filename){
