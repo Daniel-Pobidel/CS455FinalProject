@@ -291,10 +291,10 @@ void takeFName(){
         cout << "Please enter in your first name: ";
         cin >> fname;
         valid = true;
-        for(int i = 0; i < sizeof(fname); i++){
-            if(isalpha(fname[i]) == false){
+        for(int i = 0; i < fname.length(); i++){
+            if(isalpha(fname[i]) == false || fname.length() > 15){
                 valid = false;
-                cout << "Invalid input. Please only use letters for name." << endl;
+                cout << "Invalid input. Please only use letters for name and make sure it is not larger than 15 characters long." << endl;
                 break;
             }
         }
@@ -310,10 +310,10 @@ void takeLName(){
         cout << "Please enter in your last name: ";
         cin >> lname;
         valid = true;
-        for(int i = 0; i < sizeof(fname); i++){
-            if(isalpha(fname[i]) == false){
+        for(int i = 0; i < fname.length(); i++){
+            if(isalpha(lname[i]) == false || lname.length() > 15){
                 valid = false;
-                cout << "Invalid input. Please only user letters for name." << endl;
+                cout << "Invalid input. Please only user letters for name make sure it is not larger than 15 characters long." << endl;
                 break;
             }
         }

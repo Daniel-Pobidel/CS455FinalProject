@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <float.h>
 #include <iostream>
+#include <fstream>
 using namespace std;
 
 // Ani
@@ -96,3 +97,96 @@ string hashString(string str)
     }
     return ss.str();
 }
+
+// Encryption method that takes in the name of the file and encrypts the contents
+// Way to protect user info, in real life application, the encryption scheme would be more intense
+int encrypt(string fileName)
+{
+    char ch;
+    fstream fps, fpt;
+    // Open file using fstream
+    fps.open(fileName, fstream::in);
+    // throw error and return from encryption method if file cannot be opened
+    if(!fps)
+    {
+        cout<<"\nError Occurred, Opening the Source File (to Read)!";
+        return 0;
+    }
+    // Open temporary file to hold encrypted bits.
+    fpt.open("tmp.txt", fstream::out);
+    // throw error if temporary file cannot be opened.
+    if(!fpt)
+    {
+        cout<<"\nError Occurred, Opening/Creating the tmp File!";
+        return 0;
+    }
+    //noskipws is used to check for white space before text input. 
+    //only want to encrypt the char inputs
+    while(fps>>noskipws>>ch)
+    {
+        ch = ch+100;
+        fpt<<ch;
+    }
+    //close both files after writing the encrypted bits into the temp file
+    fps.close();
+    fpt.close();
+    //open file again
+    fps.open(fileName, fstream::out);
+    // Throw error, if file cannot be opened. 
+    if(!fps)
+    {
+        cout<<"\nError Occurred, Opening the Source File (to write)!";
+        return 0;
+    }
+    // open temp file that hold the encrypted bits
+    fpt.open("tmp.txt", fstream::in);
+    if(!fpt)
+    {
+        cout<<"\nError Occurred, Opening the tmp File!";
+        return 0;
+    }
+    //write the encrypted contents of the temp file into the original file
+    //then close both files
+    while(fpt>>noskipws>>ch)
+        fps<<ch;
+    fps.close();
+    fpt.close();
+    return 0;
+}
+
+int decrypt(string fileName)
+{
+    char ch;
+    fstream fps, fpt;
+    //open the file to be decrypted
+    fps.open(fileName, fstream::out);
+    // throw error and exit if file cannot be opened.
+    if(!fps)
+    {
+        cout<<"\nError Occurred while Opening the Source File!";
+        return 0;
+    }
+    //open the temporary file to write decrypted bits into
+    fpt.open("tmp.txt", fstream::in);
+    // throw error if file cannot be opened
+    if(!fpt)
+    {
+        cout<<"\nError Occurred while Opening/Creating tmp File!";
+        return 0;
+    }
+    // use noskips to get through white space and then decrement the char values
+    // write each char into original file
+    while(fpt>>noskipws>>ch)
+    {
+        ch = ch-100;
+        fps<<ch;
+    }
+
+    //close both files
+    fps.close();
+    fpt.close();
+    return 0;
+}
+
+
+
