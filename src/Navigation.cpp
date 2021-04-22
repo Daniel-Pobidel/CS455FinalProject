@@ -14,6 +14,7 @@
 #include <ctime> 
 #include <fstream>
 #include <string.h>
+#include <unistd.h>
 #include <vector>
 #include <string>
 using namespace std;
@@ -399,10 +400,10 @@ string takePin(){
             if (isNumber(tempPin)){
                 finish = true;
             }else{
-                cout << "Please enter numbers only." << endl;
+                cout << "Input Error: Please enter numbers only." << endl;
             }
         }else{
-            cout << "Pin has to be 4 digits only!." << endl;
+            cout << "Input Error: Pin has to be 4 digits only!." << endl;
         }
     }
     hashedPin = hashString(tempPin);
@@ -452,16 +453,19 @@ void newAcc(){
         }else cout << "Please use the / to seperate the month and day and only use numbers." << endl;
     }
     takeAddress();
-    string pin;
-    string pinRetype;
+    char pin[5];
+    char * pinRetype = new char[5];
     bool cont = true;
     do{
-        pin = takePin();
-        cout << "Re-enter the same pin please:" << endl;
-        pinRetype = takePin();
-        if (pin.compare(pinRetype)!=0)
-            cout << "Pins do not match. Re0enter new pin," << endl;
-        else cont=false;
+        strcpy(pin, takePin().c_str());
+        cout << "Re-enter the same pin please to validate the previous pin:" << endl;
+        strcpy(pinRetype, takePin().c_str());
+        if (strcmp(pin, pinRetype)!=0)
+            cout << endl << "Pins do not match. Re-enter new pin," << endl;
+        else{
+            cont=false;
+            delete [] pinRetype;
+        } 
     }while(cont);
     cout << "Pins matched!" << endl;
     cout << "Your info is " << fname << " " << lname << " from " << address << " born on " << dob[0] << "/" << dob[1]  << "/" << dob[2] << "\n" <<endl;   
@@ -620,7 +624,7 @@ void askForNewInfo(int info){
                 bool cont = true;
                 do{
                     pin = takePin();
-                    cout << "Re-enter the same pin please:" << endl;
+                    cout <<"Re-enter the same pin please to validate the previous pin:" << endl;
                     pinRetype = takePin();
                     if (pin.compare(pinRetype)!=0)
                         cout << "Pins do not match. Re0enter new pin," << endl;
