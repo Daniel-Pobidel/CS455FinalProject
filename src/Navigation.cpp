@@ -75,7 +75,6 @@ bool loadInputFile(const char *filename){
     char *buffer = (char *)malloc(size);
 
     if(strlen(filename)<(10+DEBIT_FOLDER.size())) throw "Error! Debit File name too short.";
-    
     try{
         f = fopen(filename,"r");
         if(f) {
@@ -91,12 +90,12 @@ bool loadInputFile(const char *filename){
                     buffer = (char*)realloc(buffer, size);
                 }
                 }while(c != EOF && c != '\n');
-
                 buffer[pos] = 0;
-                // line is now in buffer
-                istringstream ss(buffer);
+                char char_array[pos];
+ 
+                strcpy(char_array, decrypt1(buffer).c_str());        
+                istringstream ss(char_array);
 
-                //read first and last name
                 if(currLine == 2){
                     ss >> fname;
                     ss >> lname;
@@ -112,7 +111,7 @@ bool loadInputFile(const char *filename){
 
                 //read address
                 if(currLine == 4){
-                    address = buffer;
+                    address = char_array;
                 }
 
                 //read Account #
@@ -189,10 +188,8 @@ bool loadInputFile(const char *filename){
                 currLine++;
 
             } while(c != EOF); 
-
             fclose(f); 
-            cout << "\nSuccessfully loaded your piggyCard file...\n" << endl;
-            return true;    
+            cout << "\nSuccessfully loaded your piggyCard file...\n" << endl; 
         }
         else{
             throw "Error! Failed to open, specified debit file not found.";
@@ -202,7 +199,7 @@ bool loadInputFile(const char *filename){
         cout << "Failed to read debit file. Most likely it does not exists." << endl;
         return false;
     }
-      
+    return true;
 }
 
 
@@ -246,9 +243,11 @@ string createOutputString(){
 // Dan
 void createOutputFile(const char *filename){
     string fileTemplate = createOutputString();
+    string encryptedFileTemplate = encrypt1(fileTemplate);
+    cout << fileTemplate << endl;
     FILE *f;
     f=fopen(filename, "w");
-    fputs(fileTemplate.c_str(), f);
+    fputs(encryptedFileTemplate.c_str(), f);
     fclose(f);
 }
 
@@ -279,7 +278,6 @@ void generateFileName(){
 
     string filename = DEBIT_FOLDER + lname + "_PiggyCard_" + timestamp + ".txt";
     account = timestamp;
-
     updateDebit((filename).c_str());
     
     cout << "Sucessfully created new account!" << endl;
@@ -294,14 +292,6 @@ void takeFName(){
         valid = false;
         cout << "Please enter in your first name: ";
         cin >> fname;
-<<<<<<< HEAD
-        valid = true;
-        for(int i = 0; i < fname.length(); i++){
-            if(isalpha(fname[i]) == false || fname.length() > 15){
-                valid = false;
-                cout << "Invalid input. Please only use letters for name and make sure it is not larger than 15 characters long." << endl;
-                break;
-=======
         int len = fname.size();
         if (len < 2){
             cout << "First name is too short. Retype first name please." << endl;
@@ -321,7 +311,6 @@ void takeFName(){
                 }else{
                     cout << "First character has to be a letter. Retype first name please." << endl;
                 }
->>>>>>> e4608153d19ab592ba90a0c9ab1f8b0b8f116d55
             }
         }
         cin.clear();
@@ -337,14 +326,6 @@ void takeLName(){
         valid = false;
         cout << "Please enter in your last name: ";
         cin >> lname;
-<<<<<<< HEAD
-        valid = true;
-        for(int i = 0; i < fname.length(); i++){
-            if(isalpha(lname[i]) == false || lname.length() > 15){
-                valid = false;
-                cout << "Invalid input. Please only user letters for name make sure it is not larger than 15 characters long." << endl;
-                break;
-=======
         int len = lname.size();
         if (len < 2){
             cout << "Last name is too short. Retype last name please." << endl;
@@ -364,7 +345,6 @@ void takeLName(){
                 }else{
                     cout << "Last character has to be a letter. Retype last name please." << endl;
                 }
->>>>>>> e4608153d19ab592ba90a0c9ab1f8b0b8f116d55
             }
         }
         cin.clear();
@@ -726,7 +706,6 @@ bool isDebitLegit(const char * debit){
     }
 }
 
-/* TODO check is account is not locked */
 bool isUnlocked(const char * debit){
     if (unlockTimestamp.empty()) return true;
     time_t currentTime = time(0);
@@ -746,7 +725,7 @@ void start_debit(const char * debit){
     try{
         if (loadInputFile(debit) ){
             cout << "File loaded!" << endl;
-            if (isDebitLegit(debit) || true){
+            if (isDebitLegit(debit)){
                 if (isUnlocked(debit)){
                     int tries = 3;
                     string pinEnter;
@@ -802,6 +781,7 @@ void start_debit(const char * debit){
     }catch (const char *msg){
         cerr << msg << endl;
     }
+
 }
 
 // Radek
