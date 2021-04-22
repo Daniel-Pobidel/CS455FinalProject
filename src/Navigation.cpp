@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cctype>
+#include <cfloat>
 #include <cstddef>
 #include <cstdlib>
 #include <exception>
@@ -13,6 +14,7 @@
 #include <ctime> 
 #include <fstream>
 #include <string.h>
+#include <unistd.h>
 #include <vector>
 #include <string>
 using namespace std;
@@ -23,31 +25,26 @@ const string DEBIT_FOLDER = "src/DebitCards/";
 
 void process_debit(const char * debit);
 
-//temp variables hard coded for testing, these will be populated by user input
-string fname = "Dan", lname="Pobidel", address = "400 Road st, New britain, CT, 06051", account;
-int dob[3]= {07,10,1999};
-int pin = 0000;
-double balance = 0.00;
+//these will be populated by users input / reading file
+string fname, lname, address, account, dataValidationCode, tempDVC, entireFile, hashedFile, unlockTimestamp,accFileName,hashedPin="1";
+int dob[3];
+int pin;
+float balance;
 bool isLocked = false;
-string unlockTimestamp;
-string hashedPin="1";
-string dataValidationCode, tempDVC;
-string entireFile, hashedFile;
-vector <double> transactions;
+vector <float> transactions;
 vector <string> tranDates;
-string accFileName;
 
 
 //Primary author: Dan
-//used for verifying balance by adding together every transaction
-//returns sum of all transactions
-//vulnerability #3 resolution - checking amount of space available before 
-//                            - adding to preventing double overflow
-double calcBalance(){
-    double tBalance = 0.0;
+//Description: used for verifying balance by adding together every transaction
+//Output: returns sum of all transactions
+//Vulnerability Addressed: #3 Float Overflows
+//resolution - checking amount of space available before adding to preventing float overflow
+float calcBalance(){
+    float tBalance = 0.0;
 
-    for(double tran :transactions){
-        double spaceAvailable = DBL_MAX - tBalance;
+    for(float tran :transactions){
+        float spaceAvailable = DBL_MAX - tBalance;
         if(tran > spaceAvailable){
             throw "Error calculating balance, transaction total excedes storage limits.";
         }
@@ -59,11 +56,11 @@ double calcBalance(){
 }
 
 
-//Dan
-//description:Loads data from given input file into global variables
-//parameter: filename to be opened/read
-//outputs: boolean true if successful
-//vulnerabilities addressed:
+//Primary author: Dan
+//Description:Loads data from given input file into global variables
+//Parameter: filename to be opened/read
+//Output: boolean true if successful
+//Vulnerabilities addressed:
 //#5 (catching exceptions): Throw exception if file does not follow expected format
 //#7 (Failure to Handle Errors Correctly): Exiting gracefully upon error
 bool loadInputFile(const char *filename){
@@ -77,13 +74,13 @@ bool loadInputFile(const char *filename){
     int c;
     char *buffer = (char *)malloc(size);
 
-    if(strlen(filename)<(10+DEBIT_FOLDER.size())) throw "Error! File name too short.";
+    if(strlen(filename)<(10+DEBIT_FOLDER.size())) throw "Error! Debit File name too short.";
     
     try{
         f = fopen(filename,"r");
         if(f) {
             string temp;
-            double tempDouble;
+            float tempFloat;
             do { // read all lines in file
                 pos = 0;
                 do{ // read one line
@@ -139,8 +136,8 @@ bool loadInputFile(const char *filename){
 
                     if(temp.compare("+") == 0){
                         getline(ss, temp, ' '); //amount (dollars)
-                        sscanf(temp.c_str(), "%lf", &tempDouble);
-                        transactions.push_back(tempDouble);
+                        sscanf(temp.c_str(), "%f", &tempFloat);
+                        transactions.push_back(tempFloat);
                         //read timestamps
                         getline(ss, temp, '[');
                         getline(ss, temp, ']');
@@ -148,9 +145,9 @@ bool loadInputFile(const char *filename){
                     }
                     else if(temp.compare("-") == 0){
                         getline(ss, temp, ' '); //amount (dollars)
-                        sscanf(temp.c_str(), "%lf", &tempDouble);
-                        tempDouble *= -1; 
-                        transactions.push_back(tempDouble);
+                        sscanf(temp.c_str(), "%f", &tempFloat);
+                        tempFloat *= -1; 
+                        transactions.push_back(tempFloat);
                         //read timestamps
                         getline(ss, temp, '[');
                         getline(ss, temp, ']');
@@ -161,7 +158,7 @@ bool loadInputFile(const char *filename){
                     if(temp.compare("Balance: ") == 0) {
                         getline(ss, temp, '$');
                         getline(ss, temp);
-                        sscanf(temp.c_str(), "%lf", &balance);
+                        sscanf(temp.c_str(), "%f", &balance);
 
                         readTran = true;
                     };
@@ -186,7 +183,6 @@ bool loadInputFile(const char *filename){
                         getline(ss, unlockTimestamp, ']');
                     }
                     if (!unlockTimestamp.empty()){
-                        cout << "READ TUNESTANO" << endl;
                         isLocked = true;
                     } 
                 }
@@ -199,11 +195,11 @@ bool loadInputFile(const char *filename){
             return true;    
         }
         else{
-            throw "Error! Failed to open, specified file not found.";
+            throw "Error! Failed to open, specified debit file not found.";
         }   
     }
     catch(...){
-        cout << "Failure to read input file" << endl;
+        cout << "Failed to read debit file. Most likely it does not exists." << endl;
         return false;
     }
       
@@ -213,7 +209,7 @@ bool loadInputFile(const char *filename){
 //Dan
 string createOutputString(){
     ostringstream temp;
-    temp<<setprecision(3) << balance;
+    temp << fixed <<setprecision(2) << balance;
     string header = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Bank of Piggy~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
     string accountInfo = fname + " " + lname + "\n" + to_string(dob[0])+ "/" + to_string(dob[1])+ "/" + to_string(dob[2]) + "\n" + address + "Account #: " + account + 
                         "\nData Validation code: " + dataValidationCode + "\n\n";
@@ -227,13 +223,19 @@ string createOutputString(){
     
     for(int i=0; i<transactions.size();i++){
         if(transactions.at(i) >= 0){
+            temp.str("");
+            temp.clear();
+            temp << fixed <<setprecision(2) << transactions.at(i);
             transactionsHistory += "+$";
-            transactionsHistory += (to_string(transactions.at(i)));
+            transactionsHistory += temp.str();
         }
         else{
-            double temp = transactions.at(i)*-1;
+            float negate = transactions.at(i)*-1;
+            temp.str("");
+            temp.clear();
+            temp << fixed <<setprecision(2) << negate;
             transactionsHistory += "-$";
-            transactionsHistory += to_string(temp);            
+            transactionsHistory += temp.str();            
         }
         transactionsHistory += "                                                                     [";
         transactionsHistory += ( tranDates[i] + "]\n\n");
@@ -251,15 +253,15 @@ void createOutputFile(const char *filename){
 }
 
 /* Dan */
-string calculateDataValidationCode(){
+string calculateDataValidationCode(const char *debit){
     dataValidationCode = "1";
-    entireFile = createOutputString();
+    entireFile = createOutputString() + debit;
     return hashString(entireFile);
 }
 
 // Radek
 void updateDebit(const char *filename){
-    dataValidationCode = calculateDataValidationCode();
+    dataValidationCode = calculateDataValidationCode(filename);
     createOutputFile(filename);
 }
 
@@ -287,66 +289,143 @@ void generateFileName(){
 // Ani, user input for first name
 void takeFName(){
     bool valid;
+    string specialChars = "'."; 
     do{
+        valid = false;
         cout << "Please enter in your first name: ";
         cin >> fname;
+<<<<<<< HEAD
         valid = true;
         for(int i = 0; i < fname.length(); i++){
             if(isalpha(fname[i]) == false || fname.length() > 15){
                 valid = false;
                 cout << "Invalid input. Please only use letters for name and make sure it is not larger than 15 characters long." << endl;
                 break;
+=======
+        int len = fname.size();
+        if (len < 2){
+            cout << "First name is too short. Retype first name please." << endl;
+        }else{
+            if (len > 20){
+                cout << "First name is too long. Retype first name please." << endl;
+            }else{
+                if (isalpha(fname[0])){
+                    for(int i = 0; i < fname.size(); i++){
+                        if(!isalpha(fname[i]) && (specialChars.find_first_of(fname[i]) == string::npos)){
+                            valid = false;
+                            cout << "Invalid input. Please only use letters and special signs {'.}. Retype first name please." << endl;
+                            break;
+                        }
+                     valid = true;
+                    }
+                }else{
+                    cout << "First character has to be a letter. Retype first name please." << endl;
+                }
+>>>>>>> e4608153d19ab592ba90a0c9ab1f8b0b8f116d55
             }
         }
+        cin.clear();
+        cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+        
     }while(valid == false);
-    
-    // cout << endl; 
 }
 // Ani, user input for last name
 void takeLName(){
-
     bool valid;
+    string specialChars = "'."; 
     do{
+        valid = false;
         cout << "Please enter in your last name: ";
         cin >> lname;
+<<<<<<< HEAD
         valid = true;
         for(int i = 0; i < fname.length(); i++){
             if(isalpha(lname[i]) == false || lname.length() > 15){
                 valid = false;
                 cout << "Invalid input. Please only user letters for name make sure it is not larger than 15 characters long." << endl;
                 break;
+=======
+        int len = lname.size();
+        if (len < 2){
+            cout << "Last name is too short. Retype last name please." << endl;
+        }else{
+            if (len > 20){
+                cout << "Last name is too long. Retype last name please." << endl;
+            }else{
+                if (isalpha(lname[0])){
+                    for(int i = 0; i < lname.size(); i++){
+                        if(!isalpha(lname[i]) && (specialChars.find_first_of(lname[i]) == string::npos)){
+                            valid = false;
+                            cout << "Invalid input. Please only use letters and special signs {'.}. Retype last name please." << endl;
+                            break;
+                        }
+                     valid = true;
+                    }
+                }else{
+                    cout << "Last character has to be a letter. Retype last name please." << endl;
+                }
+>>>>>>> e4608153d19ab592ba90a0c9ab1f8b0b8f116d55
             }
         }
+        cin.clear();
+        cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+        
     }while(valid == false);
- 
 }
 // Ani, user input for address
 void takeAddress(){
-    cout << "Please enter in your address:";
-    cin.ignore();        
-    getline(cin, address);
+    cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+    bool valid;
+    string specialChars = "'# ."; 
+    do{
+        valid = false;
+        cout << "Please enter in your address:";   
+        getline(cin, address);
+        int len = address.size();
+        if (len < 6){
+            cout << "Address is too short. Retype address please." << endl;
+        }else{
+            if (len > 100){
+                cout << "Address is too long. Retype address please." << endl;
+            }else{
+                for(int i = 0; i < address.size(); i++){
+                    if(!isalpha(address[i]) && !(isdigit(address[i])) && (specialChars.find_first_of(address[i]) == string::npos)){
+                        valid = false;
+                        cout << "Invalid input. Please only use letter, numbers, and special signs {'# .}. Retype address please." << endl;
+                        break;
+                    }
+                    valid = true;
+                }
+            }
+        }
+        // cin.clear();
+        // cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+        
+    }while(valid == false);
     address += "\n";
-    cout << endl; 
 }
 // Ani, user input for PIN
-void takePin(){
+string takePin(){
     string tempPin;
     bool finish = false;
     
     while (!finish){
         cout << "Enter your pin [4 digit only]:" << endl;
+        showInput(false);
         cin >> tempPin;
+        showInput(true);
         if(tempPin.length() == 4){
             if (isNumber(tempPin)){
                 finish = true;
             }else{
-                cout << "Please enter numbers only." << endl;
+                cout << "Input Error: Please enter numbers only." << endl;
             }
         }else{
-            cout << "Pin has to be 4 digits only!." << endl;
+            cout << "Input Error: Pin has to be 4 digits only!." << endl;
         }
     }
     hashedPin = hashString(tempPin);
+    return tempPin;
 }
 
 // Ani
@@ -392,7 +471,21 @@ void newAcc(){
         }else cout << "Please use the / to seperate the month and day and only use numbers." << endl;
     }
     takeAddress();
-    takePin();  
+    char pin[5];
+    char * pinRetype = new char[5];
+    bool cont = true;
+    do{
+        strcpy(pin, takePin().c_str());
+        cout << "Re-enter the same pin please to validate the previous pin:" << endl;
+        strcpy(pinRetype, takePin().c_str());
+        if (strcmp(pin, pinRetype)!=0)
+            cout << endl << "Pins do not match. Re-enter new pin," << endl;
+        else{
+            cont=false;
+            delete [] pinRetype;
+        } 
+    }while(cont);
+    cout << "Pins matched!" << endl;
     cout << "Your info is " << fname << " " << lname << " from " << address << " born on " << dob[0] << "/" << dob[1]  << "/" << dob[2] << "\n" <<endl;   
     generateFileName();   
 }
@@ -417,24 +510,31 @@ void showAccount(){
 
 //Dan
 void withdraw(){
-    double withdrawlAmount;
+    string withdrawAmountInput;
+    float withdrawlAmount;
     cout << "Current balance: $" <<  fixed << setprecision(2) << balance << endl;
-    cout << "How much would you like to withdrawl? ";
-    if (cin >> withdrawlAmount) {
-      // valid number
-      if(withdrawlAmount > balance){
+    cout << "How much would you like to withdraw? ";
+    // valid number
+    cin >> withdrawAmountInput;
+    try {
+        withdrawlAmount = moneyStringToNumber(withdrawAmountInput);
+    } catch (const char *msg){
+        cerr << msg << endl;
+        withdraw();
+        return;
+    }
+
+    if(withdrawlAmount > balance){
         cout << "You dont have that much money!\n" << endl;
         withdraw();
-      }
-      else if(withdrawlAmount < 0){
+    }
+    else if(withdrawlAmount < 0){
         cout << "You can't withdrawl negative money!\n" << endl;
         withdraw();
-      }
-      else{
+    }
+    else{
         time_t t = time(0);   // get time now
-        tm* currTime = std::localtime(&t);
-        string timestamp = to_string((currTime->tm_mon + 1)) + "/" + to_string(currTime->tm_mday) + "/"+ to_string((currTime->tm_year + 1900))+" " 
-                      + to_string(currTime->tm_hour-4) + ":" + to_string(currTime->tm_min);
+        string timestamp = getTime(t);
         tranDates.push_back(timestamp);
 
         balance -= withdrawlAmount;
@@ -446,42 +546,48 @@ void withdraw(){
         
         cout << "New balance: $" << fixed << setprecision(2) << balance << endl;
         cout << "Returning to main menu...\n" <<endl;
-      }
-    } else {
-      // not a valid number
-      cout << "Invalid Input! Please input a numerical value." << endl;
-      cin.clear();
-      withdraw();
-      
     }
 }
 
-/* TODO */
 void deposit(){
-    double depositAmount;
+    string depositAmountInput;
+    float depositAmount;
     cout << "Current balance: $" <<  fixed << setprecision(2) << balance << endl;
     cout << "How much would you like to deposit? ";
-    if (cin >> depositAmount) {
-      // valid number
-      if(depositAmount > 1000){
+    // valid number
+    cin >> depositAmountInput;
+    try {
+        depositAmount = moneyStringToNumber(depositAmountInput);
+    } catch (const char *msg){
+        cerr << msg << endl;
+        deposit();
+        return;
+    }
+        
+    if(depositAmount > 1000){
         cout << "You may only deposit up to $1000 at a time\n" << endl;
         deposit();
-      }
-      else if(depositAmount < 0){
+    }
+    else if(depositAmount < 0){
         cout << "You can't deposit negative money!\n" << endl;
         deposit();
-      }
-      else if(depositAmount == 0){
-          cout << "You deposited nothing!\n" << endl;
-      }
-      else{
-        time_t t = time(0);   // get time now
-        tm* currTime = std::localtime(&t);
-        string timestamp = to_string((currTime->tm_mon + 1)) + "/" + to_string(currTime->tm_mday) + "/"+ to_string((currTime->tm_year + 1900))+" " 
-                      + to_string(currTime->tm_hour-4) + ":" + to_string(currTime->tm_min);
-        tranDates.push_back(timestamp);
+    }
+    else if(depositAmount == 0){
+        cout << "You deposited nothing!\n" << endl;
+    }
+    else{
+        try {
+            balance = floatAdd(balance, depositAmount);
+        }catch(...){
+            cerr << "Adding this amount of money would overflow the piggy bank! Transaction was unsuccesful." << endl;
+            cout << "Current balance: $" << fixed << setprecision(2) << balance << endl;
+            cout << "Returning to main menu." << endl;
+            return;
+        }
 
-        balance += depositAmount;
+        time_t t = time(0);   // get time now
+        string timestamp = getTime(t);
+        tranDates.push_back(timestamp);
 
         cout << "You deposit $" <<  fixed << setprecision(2) << depositAmount << endl;
 
@@ -489,14 +595,7 @@ void deposit(){
         
         cout << "New balance: $" << fixed << setprecision(2) << balance << endl;
         cout << "Returning to main menu...\n" <<endl;
-      }
-    } else {
-      // not a valid number
-      cout << "Invalid Input! Please input a numerical value." << endl;
-      cin.clear();
-      deposit();
     }
-
 }
 
 // condensed function that will rotate through the types of user info that can be changed
@@ -538,7 +637,18 @@ void askForNewInfo(int info){
                 break;
             }
             if(info == 4){
-                takePin();
+                  string pin;
+                string pinRetype;
+                bool cont = true;
+                do{
+                    pin = takePin();
+                    cout <<"Re-enter the same pin please to validate the previous pin:" << endl;
+                    pinRetype = takePin();
+                    if (pin.compare(pinRetype)!=0)
+                        cout << "Pins do not match. Re0enter new pin," << endl;
+                    else cont=false;
+                }while(cont);
+                cout << "Pins matched!" << endl;
                 break;
             }
                        
@@ -546,9 +656,7 @@ void askForNewInfo(int info){
             break;
         else cout << "Please enter either 'y' or n!" << endl;
     }
-
 }
-
 
 //Ani
 // Change user settings using standalone functions
@@ -588,6 +696,7 @@ void process_debit(const char * debit){
         else if (input[0] == 'a' || input[0] == 'A'){
             changeSettings();
             updateDebit(debit);
+            cout << "Changed settings successfully!" << endl;
         }
         else if (input[0] == 'q' || input[0] == 'Q'){
             /* TODO Gracefully exit the program */
@@ -604,7 +713,7 @@ void process_debit(const char * debit){
 bool isDebitLegit(const char * debit){
     cout << "Validating file integrity..." <<endl;
     tempDVC = dataValidationCode;
-    string currentHash = calculateDataValidationCode();
+    string currentHash = calculateDataValidationCode(debit);
     dataValidationCode = tempDVC;
 
     if(dataValidationCode.compare(currentHash) == 0){
@@ -669,16 +778,18 @@ void start_debit(const char * debit){
                             if (!tries){
                                 isLocked = true;
                                 unlockTimestamp = to_string(time(0) + 15);
-                                string newDatValidationCode = calculateDataValidationCode();
-                                dataValidationCode = newDatValidationCode;
-                                createOutputFile(debit);
-                                fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked for x time!\n");
+                                updateDebit(debit);
+                                long unlockTime = stol(unlockTimestamp);
+                                string timestamp = getTime(unlockTime);
+                                fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked until %s (UTC Time)!\n", timestamp.c_str());  
                                 exit(1);                            
                             }
                         }
                     }
                 }else{
-                    fprintf (stderr, "Your account is locked. You cannot open it until x time.\n");
+                    long unlockTime = stol(unlockTimestamp);
+                    string timestamp = getTime(unlockTime);
+                    fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked until %s (UTC Time)!\n", timestamp.c_str());                           
                     exit(1);
                 }
             }else{
@@ -686,8 +797,6 @@ void start_debit(const char * debit){
                 exit(1);
             }
         }else{
-            fprintf (stderr, "Card not found! Here is the help menu:\n");
-            usage();
             exit(1);
         }
     }catch (const char *msg){

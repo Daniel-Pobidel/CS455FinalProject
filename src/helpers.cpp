@@ -1,3 +1,4 @@
+#include <cctype>
 #include <termios.h>
 #include <unistd.h>
 #include <openssl/sha.h>
@@ -55,15 +56,108 @@ bool isValidDOB(int month, int day, int year){
 }
 
 // Radek
-double doubleAdd(double n1, double n2)
+bool isMoneyFormat(const string& str)
 {
-    long double ld = n1 + n2;
-    if (ld > DBL_MAX) return -1;
-    else return ld;
+    int len = str.size();
+    bool dot = false;
+    bool hasDigit = false;
+    int count = 0;
+    if (len == 0) return false;
+    int i = 0;
+    if (str[0] == '$') i++;
+    for (i=i; i<len; i++){
+        if ((str[i] == '.')){
+            if (dot) return false;
+            dot = true;
+            continue;
+        } 
+        if (dot){
+            if (!isdigit(str[i])) return false;
+            if (count == 2) return false;
+            hasDigit = true;
+            count++;
+        }else{
+            if (!isdigit(str[i])) return false;
+            hasDigit = true;
+        }
+    }
+    return hasDigit;
+}
+
+// Radek
+float moneyStringToNumber(const string& str)
+{
+    string money;
+    int len = str.size();
+    bool hasDigit = false;
+    bool dot = false;
+    int count = 0;
+    if (len == 0) throw "Input is not in money format!";
+    int i = 0;
+    if (str[0] == '$') i++;
+    for (i=i; i<len; i++){
+        if ((str[i] == '.')){
+            if (dot) throw "Input is not in money format!";
+            dot = true;
+            money += str[i];
+            continue;
+        } 
+        if (dot){
+            if (!isdigit(str[i])) throw "Input is not in money format!";
+            if (count == 2) throw "Input is not in money format!";
+            hasDigit = true;
+            money += str[i];
+            count++;
+        }else{
+            if (!isdigit(str[i])) throw "Input is not in money format!";
+            money += str[i];
+            hasDigit = true;
+        }
+    }
+    if (hasDigit){
+        try{
+            float answer = stod(money);
+            return answer;
+        }catch (exception &ex) {
+            throw "Money Input is too large!";
+        }
+    } 
+    else throw "Input is not in money format!";
+}
+
+// Radek
+string getTime(long time){
+    if (time < 0) return "";
+    tm* currTime = localtime(&time);
+    ostringstream  timestamp;
+    timestamp << hex << setw(2) << setfill('0') << to_string(currTime->tm_mon+1) << "/";
+    timestamp << hex << setw(2) << setfill('0') << to_string(currTime->tm_mday) << "/";
+    timestamp << hex << setw(4) << setfill('0') << to_string(currTime->tm_year+1900) << " ";
+    timestamp << hex << setw(2) << setfill('0') << to_string(currTime->tm_hour) << ":";
+    timestamp << hex << setw(2) << setfill('0') << to_string(currTime->tm_min) << ":";
+    timestamp << hex << setw(2) << setfill('0') << to_string(currTime->tm_sec);
+    return timestamp.str();
+}
+
+// Radek
+float floatAdd(float n1, float n2)
+{
+    double d = n1 + n2;
+    if (d > FLT_MAX) throw "Max Size Reached";
+    else return d;
 }
 
 // Radek
 bool isNumber(const string& str)
+{
+    for (char const &c : str) {
+        if (isdigit(c) == 0) return false;
+    }
+    return true;
+}
+
+// Radek
+bool inputNameValid(const string& str)
 {
     for (char const &c : str) {
         if (isdigit(c) == 0) return false;
