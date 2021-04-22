@@ -84,7 +84,7 @@ bool isMoneyFormat(const string& str)
 }
 
 // Radek
-double moneyStringToDouble(const string& str)
+float moneyStringToNumber(const string& str)
 {
     string money;
     int len = str.size();
@@ -132,11 +132,11 @@ string getTime(long time){
 }
 
 // Radek
-double doubleAdd(double n1, double n2)
+float floatAdd(float n1, float n2)
 {
-    long double ld = n1 + n2;
-    if (ld > DBL_MAX) throw "Max Size Reached";
-    else return ld;
+    double d = n1 + n2;
+    if (d > FLT_MAX) throw "Max Size Reached";
+    else return d;
 }
 
 // Radek

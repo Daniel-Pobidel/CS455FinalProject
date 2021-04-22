@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cctype>
+#include <cfloat>
 #include <cstddef>
 #include <cstdlib>
 #include <exception>
@@ -27,22 +28,22 @@ void process_debit(const char * debit);
 string fname, lname, address, account, dataValidationCode, tempDVC, entireFile, hashedFile, unlockTimestamp,accFileName,hashedPin="1";
 int dob[3];
 int pin;
-double balance;
+float balance;
 bool isLocked = false;
-vector <double> transactions;
+vector <float> transactions;
 vector <string> tranDates;
 
 
 //Primary author: Dan
 //Description: used for verifying balance by adding together every transaction
 //Output: returns sum of all transactions
-//Vulnerability Addressed: #3 Double Overflows
-//resolution - checking amount of space available before adding to preventing double overflow
-double calcBalance(){
-    double tBalance = 0.0;
+//Vulnerability Addressed: #3 Float Overflows
+//resolution - checking amount of space available before adding to preventing float overflow
+float calcBalance(){
+    float tBalance = 0.0;
 
-    for(double tran :transactions){
-        double spaceAvailable = DBL_MAX - tBalance;
+    for(float tran :transactions){
+        float spaceAvailable = DBL_MAX - tBalance;
         if(tran > spaceAvailable){
             throw "Error calculating balance, transaction total excedes storage limits.";
         }
@@ -78,7 +79,7 @@ bool loadInputFile(const char *filename){
         f = fopen(filename,"r");
         if(f) {
             string temp;
-            double tempDouble;
+            float tempFloat;
             do { // read all lines in file
                 pos = 0;
                 do{ // read one line
@@ -134,8 +135,8 @@ bool loadInputFile(const char *filename){
 
                     if(temp.compare("+") == 0){
                         getline(ss, temp, ' '); //amount (dollars)
-                        sscanf(temp.c_str(), "%lf", &tempDouble);
-                        transactions.push_back(tempDouble);
+                        sscanf(temp.c_str(), "%f", &tempFloat);
+                        transactions.push_back(tempFloat);
                         //read timestamps
                         getline(ss, temp, '[');
                         getline(ss, temp, ']');
@@ -143,9 +144,9 @@ bool loadInputFile(const char *filename){
                     }
                     else if(temp.compare("-") == 0){
                         getline(ss, temp, ' '); //amount (dollars)
-                        sscanf(temp.c_str(), "%lf", &tempDouble);
-                        tempDouble *= -1; 
-                        transactions.push_back(tempDouble);
+                        sscanf(temp.c_str(), "%f", &tempFloat);
+                        tempFloat *= -1; 
+                        transactions.push_back(tempFloat);
                         //read timestamps
                         getline(ss, temp, '[');
                         getline(ss, temp, ']');
@@ -156,7 +157,7 @@ bool loadInputFile(const char *filename){
                     if(temp.compare("Balance: ") == 0) {
                         getline(ss, temp, '$');
                         getline(ss, temp);
-                        sscanf(temp.c_str(), "%lf", &balance);
+                        sscanf(temp.c_str(), "%f", &balance);
 
                         readTran = true;
                     };
@@ -229,7 +230,7 @@ string createOutputString(){
             transactionsHistory += temp.str();
         }
         else{
-            double negate = transactions.at(i)*-1;
+            float negate = transactions.at(i)*-1;
             temp.str("");
             temp.clear();
             temp << fixed <<setprecision(2) << negate;
@@ -419,13 +420,13 @@ void showAccount(){
 //Dan
 void withdraw(){
     string withdrawAmountInput;
-    double withdrawlAmount;
+    float withdrawlAmount;
     cout << "Current balance: $" <<  fixed << setprecision(2) << balance << endl;
     cout << "How much would you like to withdraw? ";
     // valid number
     cin >> withdrawAmountInput;
     try {
-        withdrawlAmount = moneyStringToDouble(withdrawAmountInput);
+        withdrawlAmount = moneyStringToNumber(withdrawAmountInput);
     } catch (const char *msg){
         cerr << msg << endl;
         withdraw();
@@ -459,13 +460,13 @@ void withdraw(){
 
 void deposit(){
     string depositAmountInput;
-    double depositAmount;
+    float depositAmount;
     cout << "Current balance: $" <<  fixed << setprecision(2) << balance << endl;
     cout << "How much would you like to deposit? ";
     // valid number
     cin >> depositAmountInput;
     try {
-        depositAmount = moneyStringToDouble(depositAmountInput);
+        depositAmount = moneyStringToNumber(depositAmountInput);
     } catch (const char *msg){
         cerr << msg << endl;
         deposit();
@@ -484,11 +485,18 @@ void deposit(){
         cout << "You deposited nothing!\n" << endl;
     }
     else{
+        try {
+            balance = floatAdd(balance, depositAmount);
+        }catch(...){
+            cerr << "Adding this amount of money would overflow the piggy bank! Transaction was unsuccesful." << endl;
+            cout << "Current balance: $" << fixed << setprecision(2) << balance << endl;
+            cout << "Returning to main menu." << endl;
+            return;
+        }
+
         time_t t = time(0);   // get time now
         string timestamp = getTime(t);
         tranDates.push_back(timestamp);
-
-        balance += depositAmount;
 
         cout << "You deposit $" <<  fixed << setprecision(2) << depositAmount << endl;
 

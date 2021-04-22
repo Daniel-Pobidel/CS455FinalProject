@@ -3,7 +3,7 @@ Radk ae
 12/12/2000
 qwe
 Account #: 4.21.2021.18.52.33
-Data Validation code: e0b94ecba91dbe7aa0a01a3c2c5821f2b026b5cd1c65cbdd76a62be6a5a0c4dd
+Data Validation code: 9c22521331ede0b3c544693a21e7c1ea4bab69828717a6b020a5f5002cf25821
 
 Transactions 
 ~~~~~~~~~~~~~
@@ -30,7 +30,9 @@ Transactions
 
 +$12.20                                                                     [04/22/2021 02:42:03]
 
++$12.00                                                                     [04/22/2021 03:23:47]
+
 ~~~~~~
-Balance: $86.50
+Balance: $98.50
 
 ~~~~~~~~~~~~~~~~~21947b1afa74722e75573a85ce91605077337e50864f49847050f564adbe3e25~~~~~~~~~~~~~~~~~
