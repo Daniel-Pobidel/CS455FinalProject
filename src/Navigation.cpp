@@ -34,7 +34,6 @@ bool isLocked = false;
 vector <float> transactions;
 vector <string> tranDates;
 
-
 //Primary author: Dan
 //Description: used for verifying balance by adding together every transaction
 //Output: returns sum of all transactions
@@ -73,6 +72,9 @@ bool loadInputFile(const char *filename){
     int size = 1024, pos;
     int c;
     char *buffer = (char *)malloc(size);
+    if(f!=NULL){
+        cout << "already open";
+    }
 
     if(strlen(filename)<(10+DEBIT_FOLDER.size())) throw "Error! Debit File name too short.";
     
@@ -294,14 +296,6 @@ void takeFName(){
         valid = false;
         cout << "Please enter in your first name: ";
         cin >> fname;
-<<<<<<< HEAD
-        valid = true;
-        for(int i = 0; i < fname.length(); i++){
-            if(isalpha(fname[i]) == false || fname.length() > 15){
-                valid = false;
-                cout << "Invalid input. Please only use letters for name and make sure it is not larger than 15 characters long." << endl;
-                break;
-=======
         int len = fname.size();
         if (len < 2){
             cout << "First name is too short. Retype first name please." << endl;
@@ -321,7 +315,6 @@ void takeFName(){
                 }else{
                     cout << "First character has to be a letter. Retype first name please." << endl;
                 }
->>>>>>> e4608153d19ab592ba90a0c9ab1f8b0b8f116d55
             }
         }
         cin.clear();
@@ -337,14 +330,6 @@ void takeLName(){
         valid = false;
         cout << "Please enter in your last name: ";
         cin >> lname;
-<<<<<<< HEAD
-        valid = true;
-        for(int i = 0; i < fname.length(); i++){
-            if(isalpha(lname[i]) == false || lname.length() > 15){
-                valid = false;
-                cout << "Invalid input. Please only user letters for name make sure it is not larger than 15 characters long." << endl;
-                break;
-=======
         int len = lname.size();
         if (len < 2){
             cout << "Last name is too short. Retype last name please." << endl;
@@ -364,7 +349,6 @@ void takeLName(){
                 }else{
                     cout << "Last character has to be a letter. Retype last name please." << endl;
                 }
->>>>>>> e4608153d19ab592ba90a0c9ab1f8b0b8f116d55
             }
         }
         cin.clear();
@@ -498,28 +482,33 @@ void usage(){
     cout << "-h            Display Help" << endl;
 }
 
-// Ani
-// Display the user's info excluding transaction
+// Primary author: Dan
+// Description: Display all of the users unencrypted data
+// Used in conjunction with encryption function to protect user information
+// Addresses vulnerability #8 - Information leakage by only allowing users who 
+// have loaded a valid file, and successfully entered pin to access debit account file data
 void showAccount(){
-    cout << "Showing account information for: " << account << endl;
-    cout << "Name: " << lname << "," << fname << endl;
-    cout << "Date of Birth: " << dob[0] << "/" << dob[1] << "/" << dob[2] << endl;   
-    cout << "Address: " << address << endl;
-    cout << "Account Balance: " << balance << endl;
+    //TO-DO: Call decrypting function here
+    string info = createOutputString();
+    cout << info << endl;
 }
 
-//Dan
+//Primary author: Dan
+//Description: takes user input for amount of money to withdrawl and returns to main menu
+//Vulnerabilities addressed:
+//#7 (Failure to Handle Errors Correctly): Catching invalid user input by verifying it is in valid money format
 void withdraw(){
     string withdrawAmountInput;
     float withdrawlAmount;
     cout << "Current balance: $" <<  fixed << setprecision(2) << balance << endl;
     cout << "How much would you like to withdraw? ";
-    // valid number
-    cin >> withdrawAmountInput;
+
     try {
+        // check if valid money format (2 , 2.00, $2, $2.00 all valid inputs)
+        cin >> withdrawAmountInput;
         withdrawlAmount = moneyStringToNumber(withdrawAmountInput);
     } catch (const char *msg){
-        cerr << msg << endl;
+        cerr << msg << "\n" << endl;
         withdraw();
         return;
     }
@@ -549,17 +538,22 @@ void withdraw(){
     }
 }
 
+//Primary author: Dan
+//Description: takes user input for amount of money to deposit and returns to main menu
+//Vulnerabilities addressed:
+//#7 (Failure to Handle Errors Correctly): Catching invalid user input by verifying it is in valid money format
 void deposit(){
     string depositAmountInput;
     float depositAmount;
     cout << "Current balance: $" <<  fixed << setprecision(2) << balance << endl;
     cout << "How much would you like to deposit? ";
-    // valid number
-    cin >> depositAmountInput;
+    
     try {
+        // check if valid money format (2 , 2.00, $2, $2.00 all valid inputs)
+        cin >> depositAmountInput;
         depositAmount = moneyStringToNumber(depositAmountInput);
     } catch (const char *msg){
-        cerr << msg << endl;
+        cerr << msg << "\n" << endl;
         deposit();
         return;
     }

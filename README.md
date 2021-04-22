@@ -12,6 +12,7 @@ Argument Help Menu:
     -n            User is directed to create a new file
     -h            Display Help
 
-Hard Coded Lines:
+Examples:
 
+    ./a.out -n 
     ./a.out -d Bezos_PiggyCard_4.16.2021.15.53.0.txt
