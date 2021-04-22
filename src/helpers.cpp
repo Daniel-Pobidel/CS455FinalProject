@@ -149,6 +149,15 @@ bool isNumber(const string& str)
 }
 
 // Radek
+bool inputNameValid(const string& str)
+{
+    for (char const &c : str) {
+        if (isdigit(c) == 0) return false;
+    }
+    return true;
+}
+
+// Radek
 void showInput(bool showEcho)
 {
     termios tty;

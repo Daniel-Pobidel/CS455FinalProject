@@ -289,55 +289,113 @@ void generateFileName(){
 // Ani, user input for first name
 void takeFName(){
     bool valid;
+    string specialChars = "'."; 
     do{
+        valid = false;
         cout << "Please enter in your first name: ";
         cin >> fname;
-        valid = true;
-        for(int i = 0; i < fname.size(); i++){
-            if(isalpha(fname[i]) == false){
-                valid = false;
-                cout << "Invalid input. Please only use letters for name." << endl;
-                break;
+        int len = fname.size();
+        if (len < 2){
+            cout << "First name is too short. Retype first name please." << endl;
+        }else{
+            if (len > 20){
+                cout << "First name is too long. Retype first name please." << endl;
+            }else{
+                if (isalpha(fname[0])){
+                    for(int i = 0; i < fname.size(); i++){
+                        if(!isalpha(fname[i]) && (specialChars.find_first_of(fname[i]) == string::npos)){
+                            valid = false;
+                            cout << "Invalid input. Please only use letters and special signs {'.}. Retype first name please." << endl;
+                            break;
+                        }
+                     valid = true;
+                    }
+                }else{
+                    cout << "First character has to be a letter. Retype first name please." << endl;
+                }
             }
         }
+        cin.clear();
+        cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+        
     }while(valid == false);
-    
-    // cout << endl; 
 }
 // Ani, user input for last name
 void takeLName(){
-
     bool valid;
+    string specialChars = "'."; 
     do{
+        valid = false;
         cout << "Please enter in your last name: ";
         cin >> lname;
-        valid = true;
-        for(int i = 0; i < lname.size(); i++){
-            if(isalpha(lname[i]) == false){
-                valid = false;
-                cout << "Invalid input. Please only user letters for name." << endl;
-                break;
+        int len = lname.size();
+        if (len < 2){
+            cout << "Last name is too short. Retype last name please." << endl;
+        }else{
+            if (len > 20){
+                cout << "Last name is too long. Retype last name please." << endl;
+            }else{
+                if (isalpha(lname[0])){
+                    for(int i = 0; i < lname.size(); i++){
+                        if(!isalpha(lname[i]) && (specialChars.find_first_of(lname[i]) == string::npos)){
+                            valid = false;
+                            cout << "Invalid input. Please only use letters and special signs {'.}. Retype last name please." << endl;
+                            break;
+                        }
+                     valid = true;
+                    }
+                }else{
+                    cout << "Last character has to be a letter. Retype last name please." << endl;
+                }
             }
         }
+        cin.clear();
+        cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+        
     }while(valid == false);
- 
 }
 // Ani, user input for address
 void takeAddress(){
-    cout << "Please enter in your address:";
-    cin.ignore();        
-    getline(cin, address);
+    cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+    bool valid;
+    string specialChars = "'#."; 
+    do{
+        valid = false;
+        cout << "Please enter in your address:";   
+        getline(cin, address);
+        int len = address.size();
+        if (len < 6){
+            cout << "Address is too short. Retype address please." << endl;
+        }else{
+            if (len > 100){
+                cout << "Address is too long. Retype address please." << endl;
+            }else{
+                for(int i = 0; i < address.size(); i++){
+                    if(!isalpha(address[i]) && !(isdigit(address[i])) && (specialChars.find_first_of(address[i]) == string::npos)){
+                        valid = false;
+                        cout << "Invalid input. Please only use letter, numbers, and special signs {'#.}. Retype address please." << endl;
+                        break;
+                    }
+                    valid = true;
+                }
+            }
+        }
+        // cin.clear();
+        // cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+        
+    }while(valid == false);
     address += "\n";
-    cout << endl; 
 }
 // Ani, user input for PIN
-void takePin(){
+string takePin(){
     string tempPin;
     bool finish = false;
     
     while (!finish){
         cout << "Enter your pin [4 digit only]:" << endl;
+        showInput(false);
         cin >> tempPin;
+        showInput(true);
         if(tempPin.length() == 4){
             if (isNumber(tempPin)){
                 finish = true;
@@ -349,6 +407,7 @@ void takePin(){
         }
     }
     hashedPin = hashString(tempPin);
+    return tempPin;
 }
 
 // Ani
@@ -394,7 +453,18 @@ void newAcc(){
         }else cout << "Please use the / to seperate the month and day and only use numbers." << endl;
     }
     takeAddress();
-    takePin();  
+    string pin;
+    string pinRetype;
+    bool cont = true;
+    do{
+        pin = takePin();
+        cout << "Re-enter the same pin please:" << endl;
+        pinRetype = takePin();
+        if (pin.compare(pinRetype)!=0)
+            cout << "Pins do not match. Re0enter new pin," << endl;
+        else cont=false;
+    }while(cont);
+    cout << "Pins matched!" << endl;
     cout << "Your info is " << fname << " " << lname << " from " << address << " born on " << dob[0] << "/" << dob[1]  << "/" << dob[2] << "\n" <<endl;   
     generateFileName();   
 }
@@ -546,7 +616,18 @@ void askForNewInfo(int info){
                 break;
             }
             if(info == 4){
-                takePin();
+                  string pin;
+                string pinRetype;
+                bool cont = true;
+                do{
+                    pin = takePin();
+                    cout << "Re-enter the same pin please:" << endl;
+                    pinRetype = takePin();
+                    if (pin.compare(pinRetype)!=0)
+                        cout << "Pins do not match. Re0enter new pin," << endl;
+                    else cont=false;
+                }while(cont);
+                cout << "Pins matched!" << endl;
                 break;
             }
                        
@@ -554,7 +635,6 @@ void askForNewInfo(int info){
             break;
         else cout << "Please enter either 'y' or n!" << endl;
     }
-
 }
 
 //Ani
@@ -595,6 +675,7 @@ void process_debit(const char * debit){
         else if (input[0] == 'a' || input[0] == 'A'){
             changeSettings();
             updateDebit(debit);
+            cout << "Changed settings successfully!" << endl;
         }
         else if (input[0] == 'q' || input[0] == 'Q'){
             /* TODO Gracefully exit the program */
