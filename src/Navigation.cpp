@@ -1,3 +1,9 @@
+/*
+    Authors : Daniel Pobidel, Radoslaw Konopka, Aniket Patel
+    CS455 - Secure Software Development Final Project
+    Verification version
+*/
+
 #include <algorithm>
 #include <cctype>
 #include <cfloat>
@@ -27,7 +33,7 @@ void process_debit(const char * debit);
 
 //these will be populated by users input / reading file
 string fname, lname, address, account, dataValidationCode, tempDVC, entireFile, hashedFile, unlockTimestamp,accFileName,hashedPin="1";
-int dob[3];
+int dob[3]; //user date of birth MM/DD/YYYY
 int pin;
 float balance;
 bool isLocked = false;
@@ -37,8 +43,8 @@ vector <string> tranDates;
 //Primary author: Dan
 //Description: used for verifying balance by adding together every transaction
 //Output: returns sum of all transactions
-//Vulnerability Addressed: #3 Float Overflows
-//resolution - checking amount of space available before adding to preventing float overflow
+//Vulnerability ID 3-1: Integer / Float Overflows
+//resolution - checking amount of space available before addition to prevent float overflow
 float calcBalance(){
     float tBalance = 0.0;
 
@@ -59,9 +65,8 @@ float calcBalance(){
 //Description:Loads data from given input file into global variables
 //Parameter: filename to be opened/read
 //Output: boolean true if successful
-//Vulnerabilities addressed:
-//#5 (catching exceptions): Throw exception if file does not follow expected format
-//#7 (Failure to Handle Errors Correctly): Exiting gracefully upon error
+//Vulnerability ID 5-1: (catching exceptions) -  Throw exception if file does not follow expected format
+//Vulnerability ID 7-1: (Failure to Handle Errors Correctly) - Exiting gracefully upon error
 bool loadInputFile(const char *filename){
     FILE *f;
     transactions.clear();
@@ -93,10 +98,12 @@ bool loadInputFile(const char *filename){
                 }while(c != EOF && c != '\n');
                 buffer[pos] = 0;
                 char char_array[pos];
- 
+
+                //current line now in buffer
                 strcpy(char_array, decrypt1(buffer).c_str());        
                 istringstream ss(char_array);
 
+                //read first and last name
                 if(currLine == 2){
                     ss >> fname;
                     ss >> lname;
@@ -247,10 +254,11 @@ string createOutputString(){
 // Primary Author: Dan
 // Description: Calls function to generate file contents and writes it to the output file
 //              can be used to create new file or recreate existing file with updated information.
+// Inputs: file name to be created
+// Vulnerability ID 13-1: (Failure to Protect Stored Data) - encrypting the files contents to protect users stored information
 void createOutputFile(const char *filename){
     string fileTemplate = createOutputString();
     string encryptedFileTemplate = encrypt1(fileTemplate);
-    cout << fileTemplate << endl;
     FILE *f;
     f=fopen(filename, "w");
     if(f){
@@ -264,28 +272,31 @@ void createOutputFile(const char *filename){
 
 // Primary Author: Dan
 // Description: Takes entire file and returns it as a hash string that is used to verify file integrity
+// Inputs: file name holding debit information to hash
+// Outputs: entire file as a hashed string
 string calculateDataValidationCode(const char *debit){
     dataValidationCode = "1";
     entireFile = createOutputString() + debit;
     return hashString(entireFile);
 }
 
-// Radek
+// Primary Author: Radek
+// Description : automatic function to update debit file with updated values and data validation code
+// Inputs : name of file to be updated
 void updateDebit(const char *filename){
     dataValidationCode = calculateDataValidationCode(filename);
     createOutputFile(filename);
 }
 
 // Primary Author: Dan
-// Description: Generates name of new debit file by users "[last name]_PiggyCard_[creation timestamp]"" format
+// Description: Generates name of new debit file by users "[last name]_PiggyCard_[creation timestamp]" format
 //              Timestamp of creation is users account number, folder location added as prefix to create in correct location
 void generateFileName(){
-
     FILE *f;
     time_t t = time(0);   // get time now
-    tm* currTime = std::localtime(&t);
+    tm* currTime = std::gmtime(&t);
     string timestamp = to_string((currTime->tm_mon + 1)) + "." + to_string(currTime->tm_mday) + "."+ to_string((currTime->tm_year + 1900))+"." 
-                      + to_string(currTime->tm_hour-4) + "." + to_string(currTime->tm_min) + "." + to_string(currTime->tm_sec) ;
+                      + to_string(currTime->tm_hour) + "." + to_string(currTime->tm_min) + "." + to_string(currTime->tm_sec) ;
 
     string filename = DEBIT_FOLDER + lname + "_PiggyCard_" + timestamp + ".txt";
     account = timestamp;
@@ -479,7 +490,7 @@ void newAcc(){
             delete [] pinRetype;
         } 
     }while(cont);
-    cout << "Pins matched!" << endl;
+    cout << "Pins matched!\n" << endl;
     cout << "Your info is " << fname << " " << lname << " from " << address << " born on " << dob[0] << "/" << dob[1]  << "/" << dob[2] << "\n" <<endl;   
     generateFileName();   
 }
@@ -701,12 +712,12 @@ void process_debit(const char * debit){
         else if (input[0] == 'a' || input[0] == 'A'){
             changeSettings();
             updateDebit(debit);
-            cout << "Changed settings successfully!" << endl;
+            cout << "Changed settings successfully!\n" << endl;
         }
         else if (input[0] == 'q' || input[0] == 'Q'){
             /* TODO Gracefully exit the program */
             updateDebit(debit);
-            cout << "\nLogging off..." << endl;
+            cout << "\nLogging off...\n" << endl;
             exit(0);
         }else cout << "Command not found!" << endl;
     }
@@ -721,6 +732,7 @@ void process_debit(const char * debit){
 //          false if file has been corrupted (modified by user / outside of program)
 bool isDebitLegit(const char * debit){
     cout << "Validating file integrity..." <<endl;
+    sleep(1);
     tempDVC = dataValidationCode;
     string currentHash = calculateDataValidationCode(debit);
     dataValidationCode = tempDVC;
@@ -753,7 +765,6 @@ bool isUnlocked(const char * debit){
 void start_debit(const char * debit){
     try{
         if (loadInputFile(debit) ){
-            cout << "File loaded!" << endl;
             if (isDebitLegit(debit)){
                 if (isUnlocked(debit)){
                     int tries = 3;
@@ -782,14 +793,14 @@ void start_debit(const char * debit){
                             process_debit(debit);
                         }else{
                             tries--;
-                            cout << "Pin does not match! Please try again. " << tries << " remaining before locked down." << endl;
+                            cout << "Pin does not match! Please try again. " << tries << " attempt(s) remaining before locked down." << endl;
                             if (!tries){
                                 isLocked = true;
                                 unlockTimestamp = to_string(time(0) + 15);
                                 updateDebit(debit);
                                 long unlockTime = stol(unlockTimestamp);
                                 string timestamp = getTime(unlockTime);
-                                fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked until %s (UTC Time)!\n", timestamp.c_str());  
+                                fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked until %s (UTC Time)!\n\n", timestamp.c_str());  
                                 exit(1);                            
                             }
                         }
@@ -797,7 +808,7 @@ void start_debit(const char * debit){
                 }else{
                     long unlockTime = stol(unlockTimestamp);
                     string timestamp = getTime(unlockTime);
-                    fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked until %s (UTC Time)!\n", timestamp.c_str());                           
+                    fprintf (stderr, "Your account has been locked until %s (UTC Time)!\n\n", timestamp.c_str());                           
                     exit(1);
                 }
             }else{
@@ -852,9 +863,6 @@ void start(int argc, char **argv){
                 fprintf (stderr, "Arguments not provided.");
                 exit(1);
         }
-        // Print arguments out for testing purpose. [can be deleted]
-        printf ("dflag = %d, dvalue = %s, nflag = %d, hflag = %d, flags = %d\n",
-          dflag, dvalue, nflag, hflag, flags);
 
         if (flags > 1){
             fprintf (stderr, "Too many flags! Choose only 1 option. Here is the help menu:\n");

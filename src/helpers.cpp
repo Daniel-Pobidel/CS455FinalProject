@@ -1,3 +1,8 @@
+/*
+    Authors : Daniel Pobidel, Radoslaw Konopka, Aniket Patel
+    CS455 - Secure Software Development Final Project
+    Verification version
+*/
 #include <cctype>
 #include <termios.h>
 #include <unistd.h>
@@ -176,6 +181,7 @@ void showInput(bool showEcho)
 }
 
 // Radek
+// ID 13-x Failure to Protect Stored Data
 string hashString(string str)
 {
     str += "LIV6HKH3VKRD5"; // salt
