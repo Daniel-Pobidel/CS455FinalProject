@@ -73,7 +73,7 @@ bool loadInputFile(const char *filename){
     int c;
     char *buffer = (char *)malloc(size);
 
-    if(strlen(filename)<(10+DEBIT_FOLDER.size())) throw "Error! File name too short.";
+    if(strlen(filename)<(10+DEBIT_FOLDER.size())) throw "Error! Debit File name too short.";
     
     try{
         f = fopen(filename,"r");
@@ -182,7 +182,6 @@ bool loadInputFile(const char *filename){
                         getline(ss, unlockTimestamp, ']');
                     }
                     if (!unlockTimestamp.empty()){
-                        cout << "READ TUNESTANO" << endl;
                         isLocked = true;
                     } 
                 }
@@ -195,11 +194,11 @@ bool loadInputFile(const char *filename){
             return true;    
         }
         else{
-            throw "Error! Failed to open, specified file not found.";
+            throw "Error! Failed to open, specified debit file not found.";
         }   
     }
     catch(...){
-        cout << "Failure to read input file" << endl;
+        cout << "Failed to read debit file. Most likely it does not exists." << endl;
         return false;
     }
       
@@ -253,15 +252,15 @@ void createOutputFile(const char *filename){
 }
 
 /* Dan */
-string calculateDataValidationCode(){
+string calculateDataValidationCode(const char *debit){
     dataValidationCode = "1";
-    entireFile = createOutputString();
+    entireFile = createOutputString() + debit;
     return hashString(entireFile);
 }
 
 // Radek
 void updateDebit(const char *filename){
-    dataValidationCode = calculateDataValidationCode();
+    dataValidationCode = calculateDataValidationCode(filename);
     createOutputFile(filename);
 }
 
@@ -358,7 +357,7 @@ void takeLName(){
 void takeAddress(){
     cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
     bool valid;
-    string specialChars = "'#."; 
+    string specialChars = "'# ."; 
     do{
         valid = false;
         cout << "Please enter in your address:";   
@@ -373,7 +372,7 @@ void takeAddress(){
                 for(int i = 0; i < address.size(); i++){
                     if(!isalpha(address[i]) && !(isdigit(address[i])) && (specialChars.find_first_of(address[i]) == string::npos)){
                         valid = false;
-                        cout << "Invalid input. Please only use letter, numbers, and special signs {'#.}. Retype address please." << endl;
+                        cout << "Invalid input. Please only use letter, numbers, and special signs {'# .}. Retype address please." << endl;
                         break;
                     }
                     valid = true;
@@ -692,7 +691,7 @@ void process_debit(const char * debit){
 bool isDebitLegit(const char * debit){
     cout << "Validating file integrity..." <<endl;
     tempDVC = dataValidationCode;
-    string currentHash = calculateDataValidationCode();
+    string currentHash = calculateDataValidationCode(debit);
     dataValidationCode = tempDVC;
 
     if(dataValidationCode.compare(currentHash) == 0){

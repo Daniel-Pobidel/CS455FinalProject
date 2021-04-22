@@ -113,7 +113,14 @@ float moneyStringToNumber(const string& str)
             hasDigit = true;
         }
     }
-    if (hasDigit) return (stod(money));
+    if (hasDigit){
+        try{
+            float answer = stod(money);
+            return answer;
+        }catch (exception &ex) {
+            throw "Money Input is too large!";
+        }
+    } 
     else throw "Input is not in money format!";
 }
 
