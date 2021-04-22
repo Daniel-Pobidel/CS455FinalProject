@@ -63,7 +63,6 @@ float calcBalance(){
 //#5 (catching exceptions): Throw exception if file does not follow expected format
 //#7 (Failure to Handle Errors Correctly): Exiting gracefully upon error
 bool loadInputFile(const char *filename){
-
     FILE *f;
     transactions.clear();
     tranDates.clear();
@@ -208,7 +207,8 @@ bool loadInputFile(const char *filename){
 }
 
 
-//Dan
+//Primary author: Dan
+//Description: builds and outputs all of file as a string
 string createOutputString(){
     ostringstream temp;
     temp << fixed <<setprecision(2) << balance;
@@ -245,12 +245,20 @@ string createOutputString(){
     
     return header + accountInfo + transHeader + transactionsHistory + footer;
 }
-// Dan
+
+// Primary Author: Dan
+// Description: Calls function to generate file contents and writes it to the output file
+//              can be used to create new file or recreate existing file with updated information.
 void createOutputFile(const char *filename){
     string fileTemplate = createOutputString();
     FILE *f;
     f=fopen(filename, "w");
-    fputs(fileTemplate.c_str(), f);
+    if(f){
+        fputs(fileTemplate.c_str(), f);
+    }
+    else{
+        cout << "Failed to create outputfile" << endl;
+    }
     fclose(f);
 }
 
@@ -520,6 +528,9 @@ void withdraw(){
     else if(withdrawlAmount < 0){
         cout << "You can't withdrawl negative money!\n" << endl;
         withdraw();
+    }
+    else if(withdrawlAmount == 0){
+        cout << "You withdrawl nothing!\n" << endl;
     }
     else{
         time_t t = time(0);   // get time now
