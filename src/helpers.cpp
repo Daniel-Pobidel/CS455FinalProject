@@ -66,6 +66,7 @@ bool isMoneyFormat(const string& str)
     if (str[0] == '$') i++;
     for (i=i; i<len; i++){
         if ((str[i] == '.')){
+            if (dot) return false;
             dot = true;
             continue;
         } 
@@ -95,6 +96,7 @@ double moneyStringToDouble(const string& str)
     if (str[0] == '$') i++;
     for (i=i; i<len; i++){
         if ((str[i] == '.')){
+            if (dot) throw "Input is not in money format!";
             dot = true;
             money += str[i];
             continue;
@@ -113,6 +115,20 @@ double moneyStringToDouble(const string& str)
     }
     if (hasDigit) return (stod(money));
     else throw "Input is not in money format!";
+}
+
+// Radek
+string getTime(long time){
+    if (time < 0) return "";
+    tm* currTime = localtime(&time);
+    ostringstream  timestamp;
+    timestamp << hex << setw(2) << setfill('0') << to_string(currTime->tm_mon+1) << "/";
+    timestamp << hex << setw(2) << setfill('0') << to_string(currTime->tm_mday) << "/";
+    timestamp << hex << setw(4) << setfill('0') << to_string(currTime->tm_year+1900) << " ";
+    timestamp << hex << setw(2) << setfill('0') << to_string(currTime->tm_hour) << ":";
+    timestamp << hex << setw(2) << setfill('0') << to_string(currTime->tm_min) << ":";
+    timestamp << hex << setw(2) << setfill('0') << to_string(currTime->tm_sec);
+    return timestamp.str();
 }
 
 // Radek

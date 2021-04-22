@@ -442,9 +442,7 @@ void withdraw(){
     }
     else{
         time_t t = time(0);   // get time now
-        tm* currTime = std::localtime(&t);
-        string timestamp = to_string((currTime->tm_mon + 1)) + "/" + to_string(currTime->tm_mday) + "/"+ to_string((currTime->tm_year + 1900))+" " 
-                    + to_string(currTime->tm_hour-4) + ":" + to_string(currTime->tm_min);
+        string timestamp = getTime(t);
         tranDates.push_back(timestamp);
 
         balance -= withdrawlAmount;
@@ -459,7 +457,6 @@ void withdraw(){
     }
 }
 
-/* TODO */
 void deposit(){
     string depositAmountInput;
     double depositAmount;
@@ -488,9 +485,7 @@ void deposit(){
     }
     else{
         time_t t = time(0);   // get time now
-        tm* currTime = std::localtime(&t);
-        string timestamp = to_string((currTime->tm_mon + 1)) + "/" + to_string(currTime->tm_mday) + "/"+ to_string((currTime->tm_year + 1900))+" " 
-                    + to_string(currTime->tm_hour-4) + ":" + to_string(currTime->tm_min);
+        string timestamp = getTime(t);
         tranDates.push_back(timestamp);
 
         balance += depositAmount;
@@ -553,7 +548,6 @@ void askForNewInfo(int info){
     }
 
 }
-
 
 //Ani
 // Change user settings using standalone functions
@@ -674,16 +668,18 @@ void start_debit(const char * debit){
                             if (!tries){
                                 isLocked = true;
                                 unlockTimestamp = to_string(time(0) + 15);
-                                string newDatValidationCode = calculateDataValidationCode();
-                                dataValidationCode = newDatValidationCode;
-                                createOutputFile(debit);
-                                fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked for x time!\n");
+                                updateDebit(debit);
+                                long unlockTime = stol(unlockTimestamp);
+                                string timestamp = getTime(unlockTime);
+                                fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked until %s (UTC Time)!\n", timestamp.c_str());  
                                 exit(1);                            
                             }
                         }
                     }
                 }else{
-                    fprintf (stderr, "Your account is locked. You cannot open it until x time.\n");
+                    long unlockTime = stol(unlockTimestamp);
+                    string timestamp = getTime(unlockTime);
+                    fprintf (stderr, "You entered wrong pin 3 times! Your account has been locked until %s (UTC Time)!\n", timestamp.c_str());                           
                     exit(1);
                 }
             }else{
