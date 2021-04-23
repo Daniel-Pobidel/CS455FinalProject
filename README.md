@@ -16,3 +16,13 @@ Examples:
 
     ./a.out -n 
     ./a.out -d Bezos_PiggyCard_4.16.2021.15.53.0.txt
+
+Makefile Help:
+
+    1. Go to src folder
+    2. Type "make"
+    3. run "./output" + arguments as specified above
+
+Warning:
+
+    Changing anything on debit card will bring consequences. Don't do it!
