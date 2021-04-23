@@ -15,10 +15,13 @@
 #include <fstream>
 using namespace std;
 
-// Ani
-// function is used to check if dob is valid
+
+// Primary author: Ani
+// Description: function is used to check if date of birth user input is valid
+// Inputs: month, day and year as integers
+// Outputs: true if valid, false if invalid (ie. someone claims to be born in 1300)
 bool isValidDOB(int month, int day, int year){
-    if(year > 2021 || year < 1903){
+    if(year > 2020 || year < 1903){
         cout << "Year is not valid. Enter year between 1903 and 2021 only." << endl;
         return false;
     }
@@ -60,7 +63,11 @@ bool isValidDOB(int month, int day, int year){
     return true;
 }
 
-// Radek
+// Primary author: Radek
+// Description: checks if input is in money format (ie: 2 , 2.00, $2, $2.00 all valid inputs)
+// Inputs: money input as a string
+// Outputs: true if fits valid formatting, false otherwise
+// Vulnerability ID 2-8: (Format String Problems) - ensures input is in specified money format
 bool isMoneyFormat(const string& str)
 {
     int len = str.size();
@@ -89,7 +96,13 @@ bool isMoneyFormat(const string& str)
     return hasDigit;
 }
 
-// Radek
+// Primary author: Radek
+// Description: converts money from string to float
+// Inputs: money input as a string
+// Outputs: money as a float value
+// Vulnerability ID 3-2: (Float Overflows) - checks if input overflows max value
+// Vulnerability ID 5-4: (Catching Exceptions) - throw exception if overflow
+// Vulnerability ID 7-4: (Failure to Handle Errors Correctly) - exits if money string not in valid format
 float moneyStringToNumber(const string& str)
 {
     string money;
@@ -130,7 +143,10 @@ float moneyStringToNumber(const string& str)
     else throw "Input is not in money format!";
 }
 
-// Radek
+// Primary author: Radek
+// Description: converts timestamp from long type to formatted timestamp string
+// Inputs: time as a long
+// Outputs: nicely formatted time as a string in UTC
 string getTime(long time){
     if (time < 0) return "";
     tm* currTime = localtime(&time);
@@ -144,7 +160,11 @@ string getTime(long time){
     return timestamp.str();
 }
 
-// Radek
+// Primary author: Radek
+// Description: checks for overflow when adding two float values
+// Inputs:  2 float values to be added together
+// Outputs: sum of values as a float
+// Vulnerability ID 3-3: (Float Overflows) - checks if input overflows max float value
 float floatAdd(float n1, float n2)
 {
     double d = n1 + n2;
@@ -152,7 +172,10 @@ float floatAdd(float n1, float n2)
     else return d;
 }
 
-// Radek
+// Primary author: Radek
+// Description: checks if string is only numbers
+// Inputs: string to be validated
+// Outputs: bool true if only digits, false if contains non-digit character
 bool isNumber(const string& str)
 {
     for (char const &c : str) {
@@ -161,16 +184,9 @@ bool isNumber(const string& str)
     return true;
 }
 
-// Radek
-bool inputNameValid(const string& str)
-{
-    for (char const &c : str) {
-        if (isdigit(c) == 0) return false;
-    }
-    return true;
-}
-
-// Radek
+// Primary author: Radek
+// Description: turns terminal echo on or off
+// Inputs: true or false for whether echo should be enabled
 void showInput(bool showEcho)
 {
     termios tty;
@@ -180,8 +196,11 @@ void showInput(bool showEcho)
     tcsetattr(STDIN_FILENO, TCSANOW, &tty);
 }
 
-// Radek
-// ID 13-x Failure to Protect Stored Data
+// Primary author: Radek
+// Description: hashes string with SHA256 algorithm
+// Inputs: string to be hashed
+// Outputs: hashed string
+// Vulnerability ID 13-6: (Failure to Protect Stored Data) - used to protect sensitive user data
 string hashString(string str)
 {
     str += "LIV6HKH3VKRD5"; // salt
@@ -198,9 +217,11 @@ string hashString(string str)
     return ss.str();
 }
 
-// Ani
-// Encryption method that takes in the name of the file and encrypts the contents
-// Way to protect user info, in real life application, the encryption scheme would be more intense
+// Primary author: Radek
+// Description: Encryption method that takes in string and encrypts the contents using caesar algorithm
+// Inputs: string to be encrypted
+// Outputs: encrypted string
+// Vulnerability ID 13-7: (Failure to Protect Stored Data) - Way to protect user info, in real life application the encryption scheme would be more intense
 string encrypt1(const string& str)
 {
     string newStr;
@@ -212,6 +233,10 @@ string encrypt1(const string& str)
     return newStr;
 }
 
+// Primary author: Radek
+// Description: Decryption method that takes in encrypted string and decrypted the contents to original string using caesar algorithm
+// Inputs: encrypted string to be decrypted
+// Outputs: decrypted string
 string decrypt1(const string& str)
 {
     string newStr;
