@@ -1,9 +1,3 @@
-/*
-    Authors : Daniel Pobidel, Radoslaw Konopka, Aniket Patel
-    CS455 - Secure Software Development Final Project
-    Verification version
-*/
-
 #include <algorithm>
 #include <cctype>
 #include <cfloat>
@@ -40,11 +34,8 @@ bool isLocked = false;
 vector <float> transactions;
 vector <string> tranDates;
 
-//Primary author: Dan
 //Description: used for verifying balance by adding together every transaction
 //Output: returns sum of all transactions
-//Vulnerability ID 3-1: Integer / Float Overflows
-//resolution - checking amount of space available before addition to prevent float overflow
 float calcBalance(){
     float tBalance = 0.0;
 
@@ -61,12 +52,9 @@ float calcBalance(){
 }
 
 
-//Primary author: Dan
-//Description:Loads data from given input file into global variables
+//Description: Loads data from given input file into global variables
 //Parameter: filename to be opened/read
 //Output: boolean true if successful
-//Vulnerability ID 5-1: (catching exceptions) -  Throw exception if file does not follow expected format
-//Vulnerability ID 7-1: (Failure to Handle Errors Correctly) - Exiting gracefully upon error
 bool loadInputFile(const char *filename){
     FILE *f;
     transactions.clear();
@@ -207,8 +195,6 @@ bool loadInputFile(const char *filename){
     return true;
 }
 
-
-//Primary author: Dan
 //Description: builds and outputs all of file into a string by combining all data into file format structure
 //Outputs: Entire file as a string
 string createOutputString(){
@@ -248,11 +234,9 @@ string createOutputString(){
     return header + accountInfo + transHeader + transactionsHistory + footer;
 }
 
-// Primary Author: Dan
 // Description: Calls function to generate file contents and writes it to the output file
 //              can be used to create new file or recreate existing file with updated information.
 // Inputs: file name to be created
-// Vulnerability ID 13-1: (Failure to Protect Stored Data) - encrypting the files contents to protect users stored information
 void createOutputFile(const char *filename){
     string fileTemplate = createOutputString();
     string encryptedFileTemplate = encrypt1(fileTemplate);
@@ -267,7 +251,6 @@ void createOutputFile(const char *filename){
     fclose(f);
 }
 
-// Primary Author: Dan
 // Description: Takes entire file and returns it as a hash string that is used to verify file integrity
 // Inputs: file name holding debit information to hash
 // Outputs: entire file as a hashed string
@@ -277,7 +260,6 @@ string calculateDataValidationCode(const char *debit){
     return hashString(entireFile);
 }
 
-// Primary Author: Radek
 // Description : automatic function to update debit file with updated values and data validation code
 // Inputs : name of file to be updated
 void updateDebit(const char *filename){
@@ -285,7 +267,6 @@ void updateDebit(const char *filename){
     createOutputFile(filename);
 }
 
-// Primary Author: Dan
 // Description: Generates name of new debit file by users "[last name]_PiggyCard_[creation timestamp]" format
 //              Timestamp of creation is users account number, folder location added as prefix to create in correct location
 void generateFileName(){
@@ -303,9 +284,7 @@ void generateFileName(){
     cout << "Your online piggy bank card is: " << filename << endl;
 }
 
-// Primary Author: Ani
 // Description:  takes user input for first name
-// Vulnerability ID 2-1: (Format String Problems) - checking users input and not allowing invalid/harmful characters
 void takeFName(){
     bool valid;
     string specialChars = "'."; 
@@ -340,9 +319,7 @@ void takeFName(){
     }while(valid == false);
 }
 
-// Primary Author: Ani
 // Description:  takes user input for last name
-// Vulnerability ID 2-2: (Format String Problems) - checking users input and not allowing invalid/harmful characters
 void takeLName(){
     bool valid;
     string specialChars = "'."; 
@@ -376,9 +353,7 @@ void takeLName(){
     }while(valid == false);
 }
 
-// Primary Author: Ani
 // Description:  takes user input for first name
-// Vulnerability ID 2-3: (Format String Problems) - checking users input and not allowing invalid/harmful characters
 void takeAddress(){
     cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
     bool valid;
@@ -408,12 +383,8 @@ void takeAddress(){
     address += "\n";
 }
 
-// Primary Author: Ani
 // Description:  takes user pin as an input
 // Output: unhashed pin as a string
-// Vulnerability ID 2-4: (Format String Problems) - checking users input and confirming it is a valid pin
-// Vulnerability ID 8-1: (Information Leakage) - Hiding users input when entering pin to prevent leakage
-// Vulnerability ID 13-2: (Failure to Protect Stored Data) hashing pin within encrypted file for double protection
 string takePin(){
     string tempPin;
     bool finish = false;
@@ -437,12 +408,7 @@ string takePin(){
     return tempPin;
 }
 
-// Primary Author: Ani
 // Description: Function to create new account, asking user for all their basic information through input
-// Vulnerability ID 2-5: (Format String Problems) - checking users input and confirming it is valid format (day,month, year for date of birth)
-// Vulnerability ID 1-1: (Buffer Overruns) - Only allowing user to enter 4 digit pin to prevent overflow and save memory
-// Vulnerability ID 10-1: (Poor Usability) - Providing user sufficient information about input format to improve usability, 
-//                                           confirming pin to ensure they entered intended input
 void newAcc(){
     // call standalone functions to get first and last name
     takeFName();
@@ -459,7 +425,6 @@ void newAcc(){
             cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
             continue;
         }
-        // Makes sure the dob is entered in using correct format.
         if(cin.get() == '/'){
             cin >> dob[1];
             if (cin.fail()){
@@ -476,7 +441,6 @@ void newAcc(){
                     cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
                     continue;
                 }
-                // Call function that will check if the dob is valid
                 if(isValidDOB(dob[0], dob[1], dob[2]) == false) cout << "Date of birth is invalid" << endl;
                 else birthdayVerified = true;
             }else cout << "Please use the / to sperate the day and year and only use numbers. " << endl;
@@ -502,9 +466,7 @@ void newAcc(){
     generateFileName();   
 }
 
-// Primary Author: Radek
 // Description: Displays usage information if user does not provide flags when starting program
-// Vulnerability ID 10-2: (Poor Usability) - Providing user sufficient information about how to run program 
 void usage(){
     cout << "Usage: PiggyBank.out [-flag <argument>] (Only one flag is accepted)" << endl;
     cout << "-d <argument> Enter debit card number of the text file" << endl;
@@ -512,20 +474,13 @@ void usage(){
     cout << "-h            Display Help\n" << endl;
 }
 
-// Primary author: Dan
 // Description: Display all of the users unencrypted data
-// Vulnerability ID 8-2: (Information leakage) - Only allowing users who have successfully
-// loaded a valid file and entered correct pin viewing access of debit account file data.
 void showAccount(){
     string info = createOutputString();
     cout << info << endl;
 }
 
-// Primary author: Dan
 // Description: takes user input for amount of money to withdrawl and returns to main menu
-// Vulnerabilities ID 7-2: (Failure to Handle Errors Correctly) - Catching invalid user input by verifying it is in valid money format
-// Vulnerability ID 5-2: (catching exceptions) -  Throw exception if invalid user input
-// Vulnerability ID 10-3: (Poor Usability) - Lets user know exactly what they did wrong along with balance before and after successful transaction
 void withdraw(){
     string withdrawAmountInput;
     float withdrawlAmount;
@@ -570,11 +525,7 @@ void withdraw(){
     }
 }
 
-// Primary author: Dan
 // Description: takes user input for amount of money to deposit and returns to main menu
-// Vulnerabilities ID 7-3: (Failure to Handle Errors Correctly) - Catching invalid user input by verifying it is in valid money format
-// Vulnerability ID 5-3: (catching exceptions) -  Throw exception if invalid user input
-// Vulnerability ID 10-4: (Poor Usability) - Lets user know exactly what they did wrong along with balance before and after successful transaction
 void deposit(){
     string depositAmountInput;
     float depositAmount;
@@ -624,10 +575,8 @@ void deposit(){
     }
 }
 
-// Primary Author: Ani 
 // Description: condensed function that will rotate through the types of user info that can be changed/updated
 // Input: int representing which information will be changed
-// Vulnerability ID 10-5: (Poor Usability) - Lets user modify their basic information incase something misspelled, address changed, or new pin
 void askForNewInfo(int info){
     // string answer for user input
     string answer = "";
@@ -687,7 +636,6 @@ void askForNewInfo(int info){
     }
 }
 
-// Primary Author: Ani 
 // Description: Calls above function to ask user if they want to change their saved personal information
 void changeSettings(){
     // ask for first name
@@ -700,11 +648,8 @@ void changeSettings(){
     askForNewInfo(4);
 }
 
-// Primary Author: Radek
 // Description: Displays main menu options and accepts user input to navigate through program after account has been validated
 // Input: file name to process
-// Vulnerability ID 2-6: (Format String Problems) - checking users input and confirming it is one of the given options and not accepting other inputs
-// Vulnerability ID 10-6: (Poor Usability) - Providing user with a easy to user interface displaying sufficient usage information, accepting lower case and uppercase input
 void process_debit(const char * debit){
     while(1){
         system("echo Type 's' to show account information");
@@ -740,13 +685,10 @@ void process_debit(const char * debit){
 
 }
 
-
-// Primary author: Dan 
 // Description: used for verifying file has not been tampered with
 // Inputs: debit file name
 // Outputs: true if file is same as when it was saved (not modified outside of program)
 //          false if file has been corrupted (modified by user / outside of program)
-// Vulnerability ID 13-3: (Failure to Protect Stored Data) - ensuring that users file has not been tampered with by outside sources
 bool isDebitLegit(const char * debit){
     cout << "Validating file integrity..." <<endl;
     sleep(1);
@@ -764,11 +706,9 @@ bool isDebitLegit(const char * debit){
     }
 }
 
-// Primary author: Radek
 // Description: Used to check if account is locked to prevent user from logging in
 // Inputs: debit file name
 // Outputs: true if file is locked, false if unlocked
-// Vulnerability ID 13-4: (Failure to Protect Stored Data) - temporarily lock user account to protect from brute force attacks on pin
 bool isUnlocked(const char * debit){
     if (unlockTimestamp.empty()) return true;
     time_t currentTime = time(0);
@@ -783,11 +723,8 @@ bool isUnlocked(const char * debit){
     }
 }
 
-// Primary author: Radek
 // Description: Verify debit card loads properly and ensures all information valid before granting user access to main menu
 // Inputs: debit file name
-// Vulnerability ID 13-5: (Failure to Protect Stored Data) - Verify debit is not tampered with and account is not locked, require valid pin to access account
-// Vulnerability ID 10-7: (Poor Usability) - Providing user with sufficient information on each step of verification process
 void start_debit(const char * debit){
     try{
         if (loadInputFile(debit) ){
@@ -849,10 +786,8 @@ void start_debit(const char * debit){
     }
 }
 
-// Primary author: Radek
 // Description: Called by main to start program, takes initial user input flags/arguements ie) ./a.out -n  (open new account)
 // Inputs: arguements from terminal
-// Vulnerability ID 2-7: (Format String Problems) - only accepts specified flags
 void start(int argc, char **argv){
     int dflag = 0; // Debit Card
     int nflag = 0; // New
