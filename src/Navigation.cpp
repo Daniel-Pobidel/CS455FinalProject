@@ -27,7 +27,7 @@ using namespace std;
 
 #include "./helpers.cpp"
 
-const string DEBIT_FOLDER = "src/DebitCards/";
+const string DEBIT_FOLDER = "./DebitCards/";
 
 void process_debit(const char * debit);
 
